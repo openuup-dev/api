@@ -16,7 +16,7 @@ limitations under the License.
 */
 
 global $apiVersion;
-$apiVersion = '0.1.0-alpha';
+$apiVersion = '0.1.1-alpha';
 
 function brand() {
     global $apiVersion;
