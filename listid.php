@@ -15,9 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+require_once 'shared/main.php';
+
 function uupListIds() {
-    require_once 'shared/main.php';
-    brand();
+    uupApiPrintBrand();
 
     if(!file_exists('fileinfo')) return array('error' => 'NO_FILEINFO_DIR');
 
@@ -60,7 +61,7 @@ function uupListIds() {
     consoleLogger('Done parsing database info.');
 
     return array(
-        'apiVersion' => $apiVersion,
+        'apiVersion' => uupApiVersion(),
         'builds' => $builds,
     );
 }

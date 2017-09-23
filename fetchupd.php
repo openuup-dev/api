@@ -15,10 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+require_once 'shared/main.php';
+require_once 'shared/requests.php';
+
 function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build = '16251') {
-    require_once 'shared/main.php';
-    require_once 'shared/requests.php';
-    brand();
+    uupApiPrintBrand();
 
     $arch = strtolower($arch);
     $ring = strtoupper($ring);
@@ -50,7 +51,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     $build = '10.0.'.$build.'.0';
 
     consoleLogger('Fetching information from the server...');
-    $postData = composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build);
+    $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build);
     $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
 
     $out = html_entity_decode($out);
@@ -144,7 +145,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     }
 
     return array(
-        'apiVersion' => $apiVersion,
+        'apiVersion' => uupApiVersion(),
         'updateId' => $updateId,
         'updateTitle' => $updateTitle,
         'foundBuild' => $foundBuild,

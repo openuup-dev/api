@@ -15,11 +15,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+require_once 'shared/main.php';
+require_once 'shared/requests.php';
+
 function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePack = 0, $desiredEdition = 0) {
-    require_once 'shared/main.php';
-    require_once 'shared/requests.php';
-    require_once 'shared/packs.php';
-    brand();
+    require 'shared/packs.php';
+    uupApiPrintBrand();
 
     function packsByEdition($edition, $pack, $lang, $filesKeys) {
         $filesTemp = array();
@@ -83,7 +84,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     }
 
     consoleLogger('Fetching information from the server...');
-    $postData = composeFileGetRequest($updateId, $device, $info);
+    $postData = composeFileGetRequest($updateId, uupDevice(), $info);
     $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
     consoleLogger('Information was successfully fetched.');
 
@@ -134,7 +135,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             'sha1' => $sha1,
             'size' => $size,
             'url' => $url,
-            'guid' => $guid,
+            'uuid' => $guid,
             'expire' => intval($expire),
         );
 
@@ -217,7 +218,8 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     consoleLogger('Successfully parsed the information.');
 
     return array(
-        'apiVersion' => $apiVersion,
+        'apiVersion' => uupApiVersion(),
+        'updateName' => $updateName,
         'files' => $files,
     );
 }
