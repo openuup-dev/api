@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-require_once 'shared/main.php';
+require_once dirname(__FILE__).'/shared/main.php';
 
 function uupUpdateInfo($updateId, $onlyInfo = 0) {
     $info = @file_get_contents('fileinfo/'.$updateId.'.json');

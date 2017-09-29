@@ -15,9 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+require_once dirname(__FILE__).'/shared/main.php';
+
 function uupListEditions($lang = 'en-us') {
-    require_once 'shared/main.php';
-    require 'shared/packs.php';
+    require dirname(__FILE__).'/shared/packs.php';
 
     if($lang) {
         $lang = strtolower($lang);

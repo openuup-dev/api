@@ -15,8 +15,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-require_once 'shared/main.php';
-require_once 'shared/requests.php';
+require_once dirname(__FILE__).'/shared/main.php';
+require_once dirname(__FILE__).'/shared/requests.php';
 
 function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build = '16251') {
     uupApiPrintBrand();

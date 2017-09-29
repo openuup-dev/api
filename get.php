@@ -15,11 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-require_once 'shared/main.php';
-require_once 'shared/requests.php';
+require_once dirname(__FILE__).'/shared/main.php';
+require_once dirname(__FILE__).'/shared/requests.php';
 
 function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePack = 0, $desiredEdition = 0) {
-    require 'shared/packs.php';
+    require dirname(__FILE__).'/shared/packs.php';
     uupApiPrintBrand();
 
     function packsByEdition($edition, $pack, $lang, $filesKeys) {
