@@ -95,6 +95,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         return array('error' => 'EMPTY_FILELIST');
     }
 
+    $updateArch = (isset($info['arch'])) ? $info['arch'] : 'UNKNOWN';
     $updateName = (isset($info['title'])) ? $info['title'] : 'Unknown update: '.$updateId;
     $info = $info['files'];
     $out = preg_replace('/<FileLocation>|<\/FileLocation>/', '', $out[0]);
@@ -220,6 +221,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     return array(
         'apiVersion' => uupApiVersion(),
         'updateName' => $updateName,
+        'arch' => $updateArch,
         'files' => $files,
     );
 }
