@@ -17,6 +17,7 @@ limitations under the License.
 
 require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
+require_once dirname(__FILE__).'/listid.php';
 
 function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build = '16251') {
     uupApiPrintBrand();
@@ -89,7 +90,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     $fileWrite = 'NO_SAVE';
     if(!file_exists('fileinfo/'.$updateId.'.json')) {
         consoleLogger('WARNING: This build is NOT in the database. It will be saved now.');
-        consoleLogger('Parsing information to write');
+        consoleLogger('Parsing information to write...');
         if(!file_exists('fileinfo')) mkdir('fileinfo');
 
         $fileList = preg_replace('/<Files>|<\/Files>/', '', $fileList[0]);
@@ -142,6 +143,20 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
         }
     } else {
         consoleLogger('This build already exists in the database.');
+    }
+
+    $ids = uupListIds();
+    if(!isset($ids['error'])) {
+        $ids = $ids['builds'];
+        $buildName = $foundBuild.' '.$updateTitle.' '.$arch;
+
+        foreach($ids as $val) {
+            $testName = $val['build'].' '.$val['title'].' '.$val['arch'];
+            if($buildName == $testName && $val['uuid'] != $updateId) {
+                unlink(realpath('fileinfo/'.$val['uuid'].'.json'));
+                consoleLogger('Removed superseded update: '.$val['uuid']);
+            }
+        }
     }
 
     return array(

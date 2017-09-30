@@ -16,11 +16,16 @@ limitations under the License.
 */
 
 function uupApiVersion() {
-    return '0.4.0-alpha';
+    return '0.5.0-beta';
 }
 
 function uupApiPrintBrand() {
-    consoleLogger('UUP dump API v'.uupApiVersion());
+    global $uupApiBrandPrinted;
+    
+    if(!isset($uupApiBrandPrinted)) {
+        consoleLogger('UUP dump API v'.uupApiVersion());
+        $uupApiBrandPrinted = 1;
+    }
 }
 
 function randStr($length = 4) {
