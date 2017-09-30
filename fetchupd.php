@@ -62,7 +62,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     preg_match('/<Files>.*<\/Files>/', $out, $fileList);
     if(empty($fileList[0])) {
         consoleLogger('An error has occured');
-        return array('error' => 'ERROR');
+        return array('error' => 'EMPTY_FILELIST');
     }
 
     preg_match('/<FlightMetadata>.*?<Relationships>/', $out, $out2);
