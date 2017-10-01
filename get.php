@@ -91,7 +91,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     consoleLogger('Parsing information...');
     preg_match_all('/<FileLocation>.*?<\/FileLocation>/', $out, $out);
     if(empty($out[0])) {
-        consoleLogger('An error has occured');
+        consoleLogger('An error has occurred');
         return array('error' => 'EMPTY_FILELIST');
     }
 

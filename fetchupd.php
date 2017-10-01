@@ -61,7 +61,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     consoleLogger('Checking build information...');
     preg_match('/<Files>.*<\/Files>/', $out, $fileList);
     if(empty($fileList[0])) {
-        consoleLogger('An error has occured');
+        consoleLogger('An error has occurred');
         return array('error' => 'EMPTY_FILELIST');
     }
 
