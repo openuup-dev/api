@@ -26,6 +26,22 @@ function uupUpdateInfo($updateId, $onlyInfo = 0) {
 
     $info = json_decode($info, true);
 
+    $parsedInfo = uupParseUpdateInfo($info, $onlyInfo);
+    if(isset($parsedInfo['error'])) {
+        return $parsedInfo['error'];
+    }
+
+    return array(
+        'apiVersion' => uupApiVersion(),
+        'info' => $parsedInfo['info'],
+    );
+}
+
+function uupParseUpdateInfo($info, $onlyInfo = 0) {
+    if(empty($info)) {
+        return array('error' => 'UPDATE_INFORMATION_NOT_EXISTS');
+    }
+
     if($onlyInfo) {
         if(isset($info[$onlyInfo])) {
             $returnInfo = $info[$onlyInfo];
