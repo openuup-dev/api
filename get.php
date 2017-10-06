@@ -209,6 +209,10 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         unset($filesTemp, $temp, $val, $num);
     }
 
+    if(empty($filesKeys)) {
+        return array('error' => 'NO_FILES');
+    }
+
     foreach($filesKeys as $val) {
        $filesNew[$val] = $files[$val];
     }
