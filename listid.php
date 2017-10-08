@@ -26,18 +26,39 @@ function uupListIds() {
     $files = preg_grep('/\.json$/', $files);
 
     consoleLogger('Parsing database info...');
+    
+    $database = @file_get_contents('cache/fileinfo.json');
+    $database = json_decode($database, true);
+    if(empty($database)) $database = array();
+
+    $newDb = array();
     $builds = array();
     foreach($files as $file) {
         if($file == '.' || $file == '..') continue;
-
-        $info = @file_get_contents('fileinfo/'.$file);
-        $info = json_decode($info, true);
-
         $uuid = preg_replace('/\.json$/', '', $file);
 
-        $title = isset($info['title']) ? $info['title'] : 'UNKNOWN';
-        $build = isset($info['build']) ? $info['build'] : 'UNKNOWN';
-        $arch = isset($info['arch']) ? $info['arch'] : 'UNKNOWN';
+        if(!isset($database[$uuid])) {
+            $info = @file_get_contents('fileinfo/'.$file);
+            $info = json_decode($info, true);
+
+            $title = isset($info['title']) ? $info['title'] : 'UNKNOWN';
+            $build = isset($info['build']) ? $info['build'] : 'UNKNOWN';
+            $arch = isset($info['arch']) ? $info['arch'] : 'UNKNOWN';
+
+            $temp = array(
+                'title' => $title,
+                'build' => $build,
+                'arch' => $arch,
+            );
+
+            $newDb = array_merge($newDb, array($uuid => $temp));
+        } else {
+            $title = $database[$uuid]['title'];
+            $build = $database[$uuid]['build'];
+            $arch = $database[$uuid]['arch'];
+            
+            $newDb = array_merge($newDb, array($uuid => $database[$uuid]));
+        }
 
         $temp = array(
             'title' => $title,
@@ -59,6 +80,10 @@ function uupListIds() {
     $builds = $buildsNew;
 
     consoleLogger('Done parsing database info.');
+
+    if(!file_exists('cache')) mkdir('cache');
+    $success = @file_put_contents('cache/fileinfo.json', json_encode($newDb)."\n");
+    if(!$success) consoleLogger('Failed to update database cache.');
 
     return array(
         'apiVersion' => uupApiVersion(),
