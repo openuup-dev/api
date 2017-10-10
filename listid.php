@@ -67,7 +67,10 @@ function uupListIds() {
             'uuid' => $uuid,
         );
 
-        $builds = array_merge($builds, array($build.$arch.$title.$uuid => $temp));
+        $builds = array_merge(
+            $builds,
+            array($build.$arch.$title.$uuid => $temp)
+        );
     }
 
     krsort($builds);
@@ -81,9 +84,16 @@ function uupListIds() {
 
     consoleLogger('Done parsing database info.');
 
-    if(!file_exists('cache')) mkdir('cache');
-    $success = @file_put_contents('cache/fileinfo.json', json_encode($newDb)."\n");
-    if(!$success) consoleLogger('Failed to update database cache.');
+    if($newDb != $database) {
+        if(!file_exists('cache')) mkdir('cache');
+
+        $success = @file_put_contents(
+            'cache/fileinfo.json',
+            json_encode($newDb)."\n"
+        );
+
+        if(!$success) consoleLogger('Failed to update database cache.');
+    }
 
     return array(
         'apiVersion' => uupApiVersion(),
