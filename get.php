@@ -31,7 +31,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         }
 
         foreach($pack as $val) {
-            $temp = preg_grep('/'.$val.'\./i', $filesKeys);
+            $temp = preg_grep('/'.$val.'.*\./i', $filesKeys);
             $filesTemp = array_merge($filesTemp, $temp);
         }
 

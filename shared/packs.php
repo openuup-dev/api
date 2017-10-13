@@ -34,6 +34,8 @@ $packs = array(
             'Microsoft-Windows-QuickAssist-Package',
             'Microsoft-Windows-InternetExplorer-Optional-Package',
             'Microsoft-Windows-MediaPlayer-Package',
+            'Microsoft-Windows-Hello-Face-Resource-A-Package',
+            'Microsoft-Windows-Hello-Face-Resource-B-Package',
             'Microsoft-OneCore-ApplicationModel-Sync-Desktop-FOD-Package',
         ),
         'CLOUD' => array(
