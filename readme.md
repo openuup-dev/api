@@ -2,7 +2,7 @@ UUP dump API
 ------------
 
 ### Functions
-#### fetchupd.php: `uupFetchUpd($arch, $ring, $flight, $build);`
+#### fetchupd.php: `uupFetchUpd($arch, $ring, $flight, $build, $minor);`
 Fetches latest update information from Windows Update servers.
 
 Parameters:
@@ -17,7 +17,10 @@ Parameters:
    - **NOTE:** `Skip` is for `WIF` ring only. `Current` is for `RP` ring only.
 
  - `build` - Build number to use when fetching information
-   - **Supported values:** > 15063 and < 65536
+   - **Supported values:** >= 15063 and <= 65536
+
+ - `minor` - Build minor to use when fetching information
+   - **Supported values:** >= 0 and <= 65536
 
 #### get.php: `uupGetFiles($updateId, $usePack, $desiredEdition);`
 Fetches files from `updateId` update and parses to array.
@@ -75,6 +78,8 @@ Parameters:
  - UNKNOWN_FLIGHT
  - UNKNOWN_COMBINATION
  - ILLEGAL_BUILD
+ - ILLEGAL_MINOR
+ - NO_UPDATE_FOUND
  - EMPTY_FILELIST
 
 **get.php**

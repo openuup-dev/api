@@ -19,7 +19,7 @@ require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
 require_once dirname(__FILE__).'/listid.php';
 
-function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build = '16251') {
+function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build = '16251', $minor = '0') {
     uupApiPrintBrand();
 
     $arch = strtolower($arch);
@@ -47,9 +47,13 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
         return array('error' => 'ILLEGAL_BUILD');
     }
 
+    if($minor < 0 || $minor > 65536) {
+        return array('error' => 'ILLEGAL_MINOR');
+    }
+
     if($flight == 'Active' && $ring == 'RP') $flight = 'Current';
 
-    $build = '10.0.'.$build.'.0';
+    $build = '10.0.'.$build.'.'.$minor;
 
     consoleLogger('Fetching information from the server...');
     $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build);
@@ -59,7 +63,30 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     consoleLogger('Information was successfully fetched.');
 
     consoleLogger('Checking build information...');
-    preg_match('/<Files>.*<\/Files>/', $out, $fileList);
+    preg_match_all('/<UpdateInfo>.*?<\/UpdateInfo>/', $out, $updateInfos);
+    $updateInfo = preg_grep('/<Action>Install<\/Action>/', $updateInfos[0]);
+    sort($updateInfo);
+
+    if(empty($updateInfo[0])) {
+        consoleLogger('An error has occurred');
+        return array('error' => 'NO_UPDATE_FOUND');
+    }
+
+    $updateNumId = preg_replace('/<UpdateInfo><ID>|<\/ID>.*/i', '', $updateInfo[0]);
+
+    $updates = preg_replace('/<Update>/', "\n<Update>", $out);
+    preg_match_all('/<Update>.*<\/Update>/', $updates, $updates);
+
+    $updateMeta = preg_grep('/<ID>'.$updateNumId.'<\/ID>/', $updates[0]);
+    sort($updateMeta);
+
+    $updateFiles = preg_grep('/<Files>.*<\/Files>/', $updateMeta);
+    sort($updateFiles);
+
+    $updateTitle = preg_grep('/<Title>.*<\/Title>/', $updateMeta);
+    sort($updateTitle);
+
+    preg_match('/<Files>.*<\/Files>/', $updateFiles[0], $fileList);
     if(empty($fileList[0])) {
         consoleLogger('An error has occurred');
         return array('error' => 'EMPTY_FILELIST');
@@ -67,11 +94,11 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
 
     preg_match('/<FlightMetadata>.*?<Relationships>/', $out, $out2);
 
-    preg_match('/"BuildFlightVersion":".*"}/', $out2[0], $foundBuild);
-    $foundBuild = preg_replace('/"BuildFlightVersion":"10\.0\.|"}/', '', $foundBuild[0]);
-    preg_match_all('/<Title>.*?<\/Title>/i', $out, $updateTitle);
-    $updateTitle = preg_replace('/<Title>|<\/Title>/i', '', $updateTitle[0]);
-    $updateTitle = preg_grep('/'.$foundBuild.'/', $updateTitle);
+    preg_match('/Version\=".*?"/', $updateInfo[0], $foundBuild);
+    $foundBuild = preg_replace('/Version="10\.0\.|"/', '', $foundBuild[0]);
+
+    preg_match('/<Title>.*?<\/Title>/i', $updateTitle[0], $updateTitle);
+    $updateTitle = preg_replace('/<Title>|<\/Title>/i', '', $updateTitle);
     sort($updateTitle);
 
     if(isset($updateTitle[0])) {
@@ -80,9 +107,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
         $updateTitle = 'Windows 10 build '.$foundBuild;
     }
 
-    $out = preg_replace('/>/', ">\n", $out2[0]);
-
-    preg_match('/UpdateID=".*?"/', $out, $updateId);
+    preg_match('/UpdateID=".*?"/', $updateInfo[0], $updateId);
     $updateId = preg_replace('/UpdateID="|"$/', '', $updateId[0]);
     consoleLogger('Successfully checked build information.');
     consoleLogger('BUILD: '.$updateTitle.' '.$arch);
