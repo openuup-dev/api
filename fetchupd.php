@@ -83,19 +83,17 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     $updateFiles = preg_grep('/<Files>.*<\/Files>/', $updateMeta);
     sort($updateFiles);
 
-    $updateTitle = preg_grep('/<Title>.*<\/Title>/', $updateMeta);
-    sort($updateTitle);
-
     preg_match('/<Files>.*<\/Files>/', $updateFiles[0], $fileList);
     if(empty($fileList[0])) {
         consoleLogger('An error has occurred');
         return array('error' => 'EMPTY_FILELIST');
     }
 
-    preg_match('/<FlightMetadata>.*?<Relationships>/', $out, $out2);
-
     preg_match('/Version\=".*?"/', $updateInfo[0], $foundBuild);
     $foundBuild = preg_replace('/Version="10\.0\.|"/', '', $foundBuild[0]);
+
+    $updateTitle = preg_grep('/<Title>.*<\/Title>/', $updateMeta);
+    sort($updateTitle);
 
     preg_match('/<Title>.*?<\/Title>/i', $updateTitle[0], $updateTitle);
     $updateTitle = preg_replace('/<Title>|<\/Title>/i', '', $updateTitle);
