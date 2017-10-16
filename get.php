@@ -45,12 +45,12 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         }
     }
 
-    if($desiredEdition) {
+    $desiredEdition = strtoupper($desiredEdition);
+    if($desiredEdition && $desiredEdition != 'UPDATEONLY') {
         if(!$usePack) {
             return array('error' => 'UNSPECIFIED_LANG');
         }
 
-        $desiredEdition = strtoupper($desiredEdition);
         if(!isset($editionPacks[$desiredEdition])) {
             return array('error' => 'UNSUPPORTED_EDITION');
         }
@@ -76,6 +76,12 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         );
     } else {
         $info = json_decode($info, true);
+    }
+
+    if($desiredEdition == 'UPDATEONLY') {
+        if(!isset($info['containsCU']) || !$info['containsCU']) {
+            return array('error' => 'NOT_CUMULATIVE_UPDATE');
+        }
     }
 
     $uupFix = 0;
@@ -150,8 +156,10 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
                 $files = array_merge($files, array($name => $temp));
             }
         } else {
-            $name = preg_replace('/\.psf$/', '', $name);
-            $removeFiles = array_merge($removeFiles, array($name));
+            if(!preg_match('/^Windows10\.0-KB/', $name)) {
+                $name = preg_replace('/\.psf$/', '', $name);
+                $removeFiles = array_merge($removeFiles, array($name));
+            }
         }
     }
 
@@ -176,8 +184,22 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         $filesKeys = array_keys($files);
     }
 
-    if($usePack) {
+    if($desiredEdition == 'UPDATEONLY') {
+        $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
+
+        foreach($removeFiles as $val) {
+            if(isset($files[$val])) unset($files[$val]);
+        }
+
+        unset($removeFiles, $temp);
+        $filesKeys = array_keys($files);
+
+        $filesKeys = preg_grep('/Windows10\.0-KB/i', $filesKeys);
+    }
+
+    if($usePack && $desiredEdition != 'UPDATEONLY') {
         $removeFiles = preg_grep('/RetailDemo-OfflineContent/i', $filesKeys);
+        $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
 
         foreach($removeFiles as $val) {
             if(isset($files[$val])) unset($files[$val]);

@@ -144,15 +144,19 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
 
         ksort($shaArray);
 
-        $temp = array(
-            'title' => $updateTitle,
-            'ring' => $ring,
-            'flight' => $flight,
-            'arch' => $arch,
-            'build' => $foundBuild,
-            'checkBuild' => $build,
-            'files' => $shaArray,
-        );
+        $temp = array();
+        $temp['title'] = $updateTitle;
+        $temp['ring'] = $ring;
+        $temp['flight'] = $flight;
+        $temp['arch'] = $arch;
+        $temp['build'] = $foundBuild;
+        $temp['checkBuild'] = $build;
+
+        if(preg_match('/Cumulative Update/', $updateTitle)) {
+            $temp['containsCU'] = 1;
+        }
+
+        $temp['files'] = $shaArray;
 
         consoleLogger('Successfully parsed the information.');
         consoleLogger('Writing new build information to the disk...');

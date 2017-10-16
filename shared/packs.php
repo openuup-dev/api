@@ -37,6 +37,7 @@ $packs = array(
             'Microsoft-Windows-Hello-Face-Resource-A-Package',
             'Microsoft-Windows-Hello-Face-Resource-B-Package',
             'Microsoft-OneCore-ApplicationModel-Sync-Desktop-FOD-Package',
+            'Windows10\.0-KB',
         ),
         'CLOUD' => array(
             'Microsoft-Windows-EditionPack-Professional-Package',

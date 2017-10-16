@@ -16,12 +16,12 @@ limitations under the License.
 */
 
 function uupApiVersion() {
-    return '1.2.1';
+    return '1.3.0';
 }
 
 function uupApiPrintBrand() {
     global $uupApiBrandPrinted;
-    
+
     if(!isset($uupApiBrandPrinted)) {
         consoleLogger('UUP dump API v'.uupApiVersion());
         $uupApiBrandPrinted = 1;
