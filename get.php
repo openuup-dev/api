@@ -89,8 +89,14 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         if($info['needsFix'] == true) $uupFix = 1;
     }
 
+    $rev = 1;
+    if(preg_match('/_rev\./', $updateId)) {
+        $rev = preg_replace('/.*_rev\./', '', $updateId);
+        $updateId = preg_replace('/_rev\..*/', '', $updateId);
+    }
+
     consoleLogger('Fetching information from the server...');
-    $postData = composeFileGetRequest($updateId, uupDevice(), $info);
+    $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev);
     $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
     consoleLogger('Information was successfully fetched.');
 

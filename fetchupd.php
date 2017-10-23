@@ -31,7 +31,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
         return array('error' => 'UNKNOWN_ARCH');
     }
 
-    if(!($ring == 'WIF' || $ring == 'WIS' || $ring == 'RP')) {
+    if(!($ring == 'WIF' || $ring == 'WIS' || $ring == 'RP' || $ring == 'RETAIL')) {
         return array('error' => 'UNKNOWN_RING');
     }
 
@@ -105,13 +105,28 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
         $updateTitle = 'Windows 10 build '.$foundBuild;
     }
 
+    $updateTitle = preg_replace('/ for .{3,5}-based systems/i', '', $updateTitle);
+
+    if(preg_match('/Feature update/i', $updateTitle)) {
+        $updateTitle = $updateTitle.' ('.$foundBuild.')';
+    }
+
     preg_match('/UpdateID=".*?"/', $updateInfo[0], $updateId);
+    preg_match('/RevisionNumber=".*?"/', $updateInfo[0], $updateRev);
+
     $updateId = preg_replace('/UpdateID="|"$/', '', $updateId[0]);
+    $updateRev = preg_replace('/RevisionNumber="|"$/', '', $updateRev[0]);
+
     consoleLogger('Successfully checked build information.');
     consoleLogger('BUILD: '.$updateTitle.' '.$arch);
 
+    $updateString = $updateId;
+    if($updateRev != 1) {
+        $updateString = $updateId.'_rev.'.$updateRev;
+    }
+
     $fileWrite = 'NO_SAVE';
-    if(!file_exists('fileinfo/'.$updateId.'.json')) {
+    if(!file_exists('fileinfo/'.$updateString.'.json')) {
         consoleLogger('WARNING: This build is NOT in the database. It will be saved now.');
         consoleLogger('Parsing information to write...');
         if(!file_exists('fileinfo')) mkdir('fileinfo');
@@ -161,7 +176,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
         consoleLogger('Successfully parsed the information.');
         consoleLogger('Writing new build information to the disk...');
 
-        $success = file_put_contents('fileinfo/'.$updateId.'.json', json_encode($temp)."\n");
+        $success = file_put_contents('fileinfo/'.$updateString.'.json', json_encode($temp)."\n");
         if($success) {
             consoleLogger('Successfully written build information to the disk.');
             $fileWrite = 'INFO_WRITTEN';
@@ -179,7 +194,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
 
         foreach($ids as $val) {
             $testName = $val['build'].' '.$val['title'].' '.$val['arch'];
-            if($buildName == $testName && $val['uuid'] != $updateId) {
+            if($buildName == $testName && $val['uuid'] != $updateString) {
                 unlink(realpath('fileinfo/'.$val['uuid'].'.json'));
                 consoleLogger('Removed superseded update: '.$val['uuid']);
             }
@@ -188,7 +203,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
 
     return array(
         'apiVersion' => uupApiVersion(),
-        'updateId' => $updateId,
+        'updateId' => $updateString,
         'updateTitle' => $updateTitle,
         'foundBuild' => $foundBuild,
         'arch' => $arch,
