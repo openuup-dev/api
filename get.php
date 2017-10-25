@@ -84,6 +84,17 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         }
     }
 
+    if(isset($info['build'])) {
+        $build = $info['build'];
+
+        if($build == 'UNKNOWN') {
+            $buildNumber = 9841;
+        } else {
+            $buildNumber = explode('.', $build);
+            $buildNumber = $buildNumber[0];
+        }
+    }
+
     $uupFix = 0;
     if(isset($info['needsFix'])) {
         if($info['needsFix'] == true) $uupFix = 1;
@@ -142,7 +153,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             $size = $info[$sha1]['size'];
         }
 
-        if($uupFix && !isset($fileSizes[$name])) $fileSizes[$name] = 0;
+        if(!isset($fileSizes[$name])) $fileSizes[$name] = 0;
 
         $temp = array(
             'sha1' => $sha1,
@@ -153,12 +164,8 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         );
 
         if(!preg_match('/\.psf$/', $name)) {
-            if($uupFix) {
-                if($size > $fileSizes[$name]) {
-                    $fileSizes[$name] = $size;
-                    $files = array_merge($files, array($name => $temp));
-                }
-            } else {
+            if($size > $fileSizes[$name]) {
+                $fileSizes[$name] = $size;
                 $files = array_merge($files, array($name => $temp));
             }
         } else {
@@ -171,7 +178,17 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
 
     if(!$uupFix) {
         foreach($removeFiles as $val) {
-            if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+            if(preg_match('/'.$updateArch.'_.*/i', $val)) {
+                if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+            }
+
+            if(isset($files[$val.'.esd'])) {
+                if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+            }
+
+            if(isset($files[$val.'.ESD'])) {
+                if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+            }
         }
         unset($removeFiles);
     }
