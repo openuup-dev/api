@@ -16,7 +16,7 @@ limitations under the License.
 */
 
 function uupApiVersion() {
-    return '1.4.1';
+    return '1.5.0';
 }
 
 function uupApiPrintBrand() {
@@ -44,6 +44,7 @@ function sendWuPostRequest($url, $postData) {
     curl_setopt($req, CURLOPT_HEADER, 0);
     curl_setopt($req, CURLOPT_POST, 1);
     curl_setopt($req, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($req, CURLOPT_ENCODING, '');
     curl_setopt($req, CURLOPT_POSTFIELDS, $postData);
     curl_setopt($req, CURLOPT_SSL_VERIFYPEER, 0);
     curl_setopt($req, CURLOPT_HTTPHEADER, array(

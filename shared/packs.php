@@ -77,7 +77,7 @@ $packs = array(
             'Microsoft-Windows-EditionSpecific-Enterprise-WOW64-Package',
             'Microsoft-Windows-EditionSpecific-Enterprise-arm64arm-Package',
             'Microsoft\.ModernApps\.Client\.All',
-            'Microsoft\.ModernApps\.Client\.enterprise',
+            'Microsoft\.ModernApps\.Client\.enterprise\.',
         ),
         'PROFESSIONAL' => array(
             'Microsoft-Windows-EditionPack-Professional-Package',

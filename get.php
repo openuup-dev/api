@@ -31,7 +31,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         }
 
         foreach($pack as $val) {
-            $temp = preg_grep('/'.$val.'.*\./i', $filesKeys);
+            $temp = preg_grep('/'.$val.'.*/i', $filesKeys);
             $filesTemp = array_merge($filesTemp, $temp);
         }
 
@@ -124,21 +124,12 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     $out = preg_replace('/<FileLocation>|<\/FileLocation>/', '', $out[0]);
 
     $files = array();
-    $removeFiles = array();
-
     foreach($out as $val) {
         preg_match('/<FileDigest>.*<\/FileDigest>/', $val, $sha1);
         $sha1 = preg_replace('/<FileDigest>|<\/FileDigest>/', '', $sha1[0]);
         $sha1 = bin2hex(base64_decode($sha1));
 
-        preg_match('/<Url>.*<\/Url>/', $val, $url);
-        $url = preg_replace('/<Url>|<\/Url>/', '', $url[0]);
-        $url = html_entity_decode($url);
-
-        preg_match('/P1=.*?&/', $url, $expire);
-        if(isset($expire[0])) $expire = preg_replace('/P1=|&$/', '', $expire[0]);
-
-        preg_match('/files\/.{8}-.{4}-.{4}-.{4}-.{12}/', $url, $guid);
+        preg_match('/files\/.{8}-.{4}-.{4}-.{4}-.{12}/', $val, $guid);
         $guid = preg_replace('/files\/|\?$/', '', $guid[0]);
 
         if(empty($info[$sha1]['name'])) {
@@ -155,33 +146,56 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
 
         if(!isset($fileSizes[$name])) $fileSizes[$name] = 0;
 
-        $temp = array(
-            'sha1' => $sha1,
-            'size' => $size,
-            'url' => $url,
-            'uuid' => $guid,
-            'expire' => intval($expire),
-        );
+        if($size > $fileSizes[$name]) {
+            preg_match('/<Url>.*<\/Url>/', $val, $url);
+            $url = preg_replace('/<Url>|<\/Url>/', '', $url[0]);
+            $url = html_entity_decode($url);
 
-        if(!preg_match('/\.psf$/', $name)) {
-            if($size > $fileSizes[$name]) {
-                $fileSizes[$name] = $size;
-                $files = array_merge($files, array($name => $temp));
+            preg_match('/P1=.*?&/', $url, $expire);
+            if(isset($expire[0])) {
+                $expire = preg_replace('/P1=|&$/', '', $expire[0]);
             }
-        } else {
-            if(!preg_match('/^Windows10\.0-KB/', $name)) {
-                $name = preg_replace('/\.psf$/', '', $name);
-                $removeFiles = array_merge($removeFiles, array($name));
-            }
+
+            $fileSizes[$name] = $size;
+
+            $temp = array();
+            $temp['sha1'] = $sha1;
+            $temp['size'] = $size;
+            $temp['url'] = $url;
+            $temp['uuid'] = $guid;
+            $temp['expire'] = intval($expire);
+
+            $newName = preg_replace('/~31bf3856ad364e35/', '', $name);
+            $newName = preg_replace('/~~\.|~\./', '.', $newName);
+            $newName = preg_replace('/~/', '-', $newName);
+
+            $files[$newName] = $temp;
         }
     }
 
-    if(!$uupFix) {
-        foreach($removeFiles as $val) {
-            if(preg_match('/'.$updateArch.'_.*/i', $val)) {
-                if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
-            }
+    $psf = array_keys($files);
+    $psf = preg_grep('/\.psf$/i', $psf);
 
+    $index = 0;
+    $removeFiles = array();
+    foreach($psf as $val) {
+        $name = preg_replace('/\.psf$/i', '', $val);
+        $removeFiles[$index] = $name;
+        unset($files[$val]);
+        $index++;
+    }
+    unset($index, $name);
+
+    if(!$uupFix) {
+        $temp = preg_grep('/'.$updateArch.'_.*|arm64.arm_.*/i', $removeFiles);
+
+        foreach($temp as $key => $val) {
+            if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+            unset($removeFiles[$key]);
+        }
+        unset($temp);
+
+        foreach($removeFiles as $val) {
             if(isset($files[$val.'.esd'])) {
                 if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
             }
