@@ -84,22 +84,6 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         }
     }
 
-    if(isset($info['build'])) {
-        $build = $info['build'];
-
-        if($build == 'UNKNOWN') {
-            $buildNumber = 9841;
-        } else {
-            $buildNumber = explode('.', $build);
-            $buildNumber = $buildNumber[0];
-        }
-    }
-
-    $uupFix = 0;
-    if(isset($info['needsFix'])) {
-        if($info['needsFix'] == true) $uupFix = 1;
-    }
-
     $rev = 1;
     if(preg_match('/_rev\./', $updateId)) {
         $rev = preg_replace('/.*_rev\./', '', $updateId);
@@ -172,6 +156,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             $files[$newName] = $temp;
         }
     }
+    unset($temp, $newName);
 
     $psf = array_keys($files);
     $psf = preg_grep('/\.psf$/i', $psf);
@@ -184,43 +169,27 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         unset($files[$val]);
         $index++;
     }
-    unset($index, $name);
+    unset($index, $name, $psf);
 
-    if(!$uupFix) {
-        $temp = preg_grep('/'.$updateArch.'_.*|arm64.arm_.*/i', $removeFiles);
-
-        foreach($temp as $key => $val) {
-            if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
-            unset($removeFiles[$key]);
-        }
-        unset($temp);
-
-        foreach($removeFiles as $val) {
-            if(isset($files[$val.'.esd'])) {
-                if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
-            }
-
-            if(isset($files[$val.'.ESD'])) {
-                if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
-            }
-        }
-        unset($removeFiles);
+    $temp = preg_grep('/'.$updateArch.'_.*|arm64.arm_.*/i', $removeFiles);
+    foreach($temp as $key => $val) {
+        if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+        unset($removeFiles[$key]);
     }
+    unset($temp);
+
+    foreach($removeFiles as $val) {
+        if(isset($files[$val.'.esd'])) {
+            if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+        }
+
+        if(isset($files[$val.'.ESD'])) {
+            if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+        }
+    }
+    unset($removeFiles);
 
     $filesKeys = array_keys($files);
-
-    if($uupFix) {
-        $removeFiles = preg_grep('/\.esd$/i', $filesKeys);
-
-        foreach($removeFiles as $val) {
-            $temp = preg_replace('/\.esd$/i', '', $val);
-            if(isset($files[$temp.'.cab'])) unset($files[$temp.'.cab']);
-        }
-
-        unset($removeFiles, $temp);
-        $filesKeys = array_keys($files);
-    }
-
     if($desiredEdition == 'UPDATEONLY') {
         $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
 
@@ -235,16 +204,18 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     }
 
     if($usePack && $desiredEdition != 'UPDATEONLY') {
-        $removeFiles = preg_grep('/RetailDemo-OfflineContent/i', $filesKeys);
-        $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
+        $removeFiles = array();
+        $removeFiles[0] = preg_grep('/RetailDemo-OfflineContent/i', $filesKeys);
+        $removeFiles[1] = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
 
         foreach($removeFiles as $val) {
-            if(isset($files[$val])) unset($files[$val]);
+            foreach($val as $temp) {
+                if(isset($files[$temp])) unset($files[$temp]);
+            }
         }
+        unset($removeFiles, $temp, $val);
 
-        unset($removeFiles, $temp);
         $filesKeys = array_keys($files);
-
         $filesTemp = array();
 
         $temp = preg_grep('/.*'.$usePack.'-Package.*/i', $filesKeys);
