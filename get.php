@@ -70,8 +70,8 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     if(empty($info)) {
         $info = array(
             'ring' => 'WIF',
-            'flight' => 'Skip',
-            'checkBuild' => '10.0.16232.0',
+            'flight' => 'Active',
+            'checkBuild' => '10.0.16251.0',
             'files' => array(),
         );
     } else {
@@ -90,6 +90,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         $updateId = preg_replace('/_rev\..*/', '', $updateId);
     }
 
+    $fetchTime = time();
     consoleLogger('Fetching information from the server...');
     $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev);
     $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
@@ -109,9 +110,9 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
 
     $files = array();
     foreach($out as $val) {
-        preg_match('/<FileDigest>.*<\/FileDigest>/', $val, $sha1);
-        $sha1 = preg_replace('/<FileDigest>|<\/FileDigest>/', '', $sha1[0]);
-        $sha1 = bin2hex(base64_decode($sha1));
+        $sha1 = explode('<FileDigest>', $val, 2);
+        $sha1 = explode('</FileDigest>', $sha1[1], 2);
+        $sha1 = bin2hex(base64_decode($sha1[0]));
 
         preg_match('/files\/.{8}-.{4}-.{4}-.{4}-.{12}/', $val, $guid);
         $guid = preg_replace('/files\/|\?$/', '', $guid[0]);
@@ -123,21 +124,30 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         }
 
         if(empty($info[$sha1]['name'])) {
-            $size = 0;
+            $size = -1;
         } else {
             $size = $info[$sha1]['size'];
         }
 
-        if(!isset($fileSizes[$name])) $fileSizes[$name] = 0;
+        if(!isset($fileSizes[$name])) $fileSizes[$name] = -2;
 
         if($size > $fileSizes[$name]) {
-            preg_match('/<Url>.*<\/Url>/', $val, $url);
-            $url = preg_replace('/<Url>|<\/Url>/', '', $url[0]);
-            $url = html_entity_decode($url);
+            $url = explode('<Url>', $val, 2);
+            $url = explode('</Url>', $url[1], 2);
+            $url = html_entity_decode($url[0]);
 
             preg_match('/P1=.*?&/', $url, $expire);
             if(isset($expire[0])) {
                 $expire = preg_replace('/P1=|&$/', '', $expire[0]);
+            }
+
+            $expire = intval($expire);
+
+            if($size < 0) {
+                $temp = ($expire - $fetchTime) / 600;
+                $size = ($temp - 1) * 31457280;
+                if($size < 0) $size = 0;
+                unset($temp);
             }
 
             $fileSizes[$name] = $size;
@@ -147,7 +157,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             $temp['size'] = $size;
             $temp['url'] = $url;
             $temp['uuid'] = $guid;
-            $temp['expire'] = intval($expire);
+            $temp['expire'] = $expire;
 
             $newName = preg_replace('/~31bf3856ad364e35/', '', $name);
             $newName = preg_replace('/~~\.|~\./', '.', $newName);

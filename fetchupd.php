@@ -27,6 +27,10 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     $flight = ucwords(strtolower($flight));
     if($flight == 'Current') $flight = 'Active';
 
+    $build = explode('.', $build);
+    if(isset($build[1])) $minor = intval($build[1]);
+    $build = intval($build[0]);
+
     if(!($arch == 'amd64' || $arch == 'x86' || $arch == 'arm64')) {
         return array('error' => 'UNKNOWN_ARCH');
     }
