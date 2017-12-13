@@ -26,7 +26,7 @@ function uupListIds() {
     $files = preg_grep('/\.json$/', $files);
 
     consoleLogger('Parsing database info...');
-    
+
     $database = @file_get_contents('cache/fileinfo.json');
     $database = json_decode($database, true);
     if(empty($database)) $database = array();
@@ -51,13 +51,13 @@ function uupListIds() {
                 'arch' => $arch,
             );
 
-            $newDb = array_merge($newDb, array($uuid => $temp));
+            $newDb[$uuid] = $temp;
         } else {
             $title = $database[$uuid]['title'];
             $build = $database[$uuid]['build'];
             $arch = $database[$uuid]['arch'];
-            
-            $newDb = array_merge($newDb, array($uuid => $database[$uuid]));
+
+            $newDb[$uuid] = $database[$uuid];
         }
 
         $temp = array(
@@ -67,21 +67,26 @@ function uupListIds() {
             'uuid' => $uuid,
         );
 
-        $builds = array_merge(
-            $builds,
-            array($build.$arch.$title.$uuid => $temp)
-        );
+        $tmp = explode('.', $build);
+        $tmp[0] = str_pad($tmp[0], 10, '0', STR_PAD_LEFT);
+        $tmp[1] = str_pad($tmp[1], 10, '0', STR_PAD_LEFT);
+        $tmp = $tmp[0].$tmp[1];
+
+        $buildAssoc[$tmp][] = $arch.$title.$uuid;
+        $builds[$tmp.$arch.$title.$uuid] = $temp;
     }
 
-    krsort($builds);
-
+    krsort($buildAssoc);
     $buildsNew = array();
-    foreach($builds as $val) {
-        $buildsNew = array_merge($buildsNew, array($val));
+
+    foreach($buildAssoc as $key => $val) {
+        sort($val);
+        foreach($val as $id) {
+            $buildsNew[] = $builds[$key.$id];
+        }
     }
 
     $builds = $buildsNew;
-
     consoleLogger('Done parsing database info.');
 
     if($newDb != $database) {
