@@ -78,6 +78,21 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         $info = json_decode($info, true);
     }
 
+    if(isset($info['build'])) {
+        $build = explode('.', $info['build']);
+        $build = $build[0];
+    } else {
+        $build = 9841;
+    }
+
+    if($build >= 17063) {
+        $packs = $packs17063;
+
+        if(isset($editionMap[$desiredEdition])) {
+            $desiredEdition = $editionMap[$desiredEdition];
+        }
+    }
+
     if($desiredEdition == 'UPDATEONLY') {
         if(!isset($info['containsCU']) || !$info['containsCU']) {
             return array('error' => 'NOT_CUMULATIVE_UPDATE');

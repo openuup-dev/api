@@ -307,4 +307,72 @@ $fancyLangNames = array(
     'zh-cn' => 'Chinese (Simplified)',
     'zh-tw' => 'Chinese (Traditional)',
 );
+
+// 17063 and newer builds specific fix
+// Base pack
+$packs17063 = array();
+$packs17063[0]['editionNeutral'] = $packs[0]['editionNeutral'];
+$packs17063[0]['CORE'] = array(
+    'Microsoft-Windows-EditionPack-Core-Package',
+    'Microsoft-Windows-EditionPack-Core-WOW64-Package',
+    'Microsoft-Windows-EditionPack-Core-arm64arm-Package',
+    'Microsoft-Windows-EditionSpecific-Core-Package',
+    'Microsoft-Windows-EditionSpecific-Core-WOW64-Package',
+    'Microsoft-Windows-EditionSpecific-Core-arm64arm-Package',
+    'Microsoft\.ModernApps\.Client\.All',
+    'Microsoft\.ModernApps\.Client\.core\.',
+);
+$packs17063[0]['PROFESSIONAL'] = array(
+    'Microsoft-Windows-EditionPack-Enterprise-Package',
+    'Microsoft-Windows-EditionPack-Enterprise-WOW64-Package',
+    'Microsoft-Windows-EditionPack-Enterprise-arm64arm-Package',
+    'Microsoft-Windows-EditionSpecific-Enterprise-Package',
+    'Microsoft-Windows-EditionSpecific-Enterprise-WOW64-Package',
+    'Microsoft-Windows-EditionSpecific-Enterprise-arm64arm-Package',
+    'Microsoft\.ModernApps\.Client\.All',
+    'Microsoft\.ModernApps\.Client\.professional',
+);
+
+// European "N" Editions
+$packs17063[1]['COREN'] = array(
+    'Microsoft-Windows-EditionPack-Core-Package',
+    'Microsoft-Windows-EditionPack-Core-WOW64-Package',
+    'Microsoft-Windows-EditionPack-Core-arm64arm-Package',
+    'Microsoft-Windows-EditionSpecific-CoreN-Package',
+    'Microsoft-Windows-EditionSpecific-CoreN-WOW64-Package',
+    'Microsoft-Windows-EditionSpecific-CoreN-arm64arm-Package',
+    'Microsoft\.ModernApps\.ClientN\.All',
+);
+$packs17063[1]['PROFESSIONALN'] = array(
+    'Microsoft-Windows-EditionPack-Enterprise-Package',
+    'Microsoft-Windows-EditionPack-Enterprise-WOW64-Package',
+    'Microsoft-Windows-EditionPack-Enterprise-arm64arm-Package',
+    'Microsoft-Windows-EditionSpecific-EnterpriseN-Package',
+    'Microsoft-Windows-EditionSpecific-EnterpriseN-WOW64-Package',
+    'Microsoft-Windows-EditionSpecific-EnterpriseN-arm64arm-Package',
+    'Microsoft\.ModernApps\.ClientN\.All',
+);
+
+// Other packs mirrored from pre-17063 packs
+$packs17063[2] = array();
+$packs17063[3] = $packs[3];
+$packs17063[4] = $packs[4];
+$packs17063[5] = $packs[5];
+$packs17063[6] = $packs[6];
+$packs17063[7] = $packs[7];
+
+// Edition map to avoid larger changes in API
+$editionMap = array(
+    'CLOUD' => 'PROFESSIONAL',
+    'CLOUDN' => 'PROFESSIONALN',
+    'CORE' => 'CORE',
+    'COREN' => 'COREN',
+    'CORESINGLELANGUAGE' => 'CORE',
+    'EDUCATION' => 'PROFESSIONAL',
+    'EDUCATIONN' => 'PROFESSIONALN',
+    'ENTERPRISE' => 'PROFESSIONAL',
+    'ENTERPRISEN' => 'PROFESSIONALN',
+    'PROFESSIONAL' => 'PROFESSIONAL',
+    'PROFESSIONALN' => 'PROFESSIONALN',
+);
 ?>
