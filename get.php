@@ -17,9 +17,9 @@ limitations under the License.
 
 require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
+require_once dirname(__FILE__).'/shared/packs.php';
 
 function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePack = 0, $desiredEdition = 0) {
-    require dirname(__FILE__).'/shared/packs.php';
     uupApiPrintBrand();
 
     function packsByEdition($edition, $pack, $lang, $filesKeys) {
@@ -37,6 +37,30 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
 
         return $filesTemp;
     }
+
+    $info = @file_get_contents('fileinfo/'.$updateId.'.json');
+    if(empty($info)) {
+        $info = array(
+            'ring' => 'WIF',
+            'flight' => 'Active',
+            'checkBuild' => '10.0.16251.0',
+            'files' => array(),
+        );
+    } else {
+        $info = json_decode($info, true);
+    }
+
+    if(isset($info['build'])) {
+        $build = explode('.', $info['build']);
+        $build = $build[0];
+    } else {
+        $build = 9841;
+    }
+
+    $packs = uupGetPacks($build);
+    $packsForLangs = $packs['packsForLangs'];
+    $editionPacks = $packs['editionPacks'];
+    $packs = $packs['packs'];
 
     if($usePack) {
         $usePack = strtolower($usePack);
@@ -64,33 +88,6 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             return array('error' => 'UNSUPPORTED_COMBINATION');
         }
         unset($supported);
-    }
-
-    $info = @file_get_contents('fileinfo/'.$updateId.'.json');
-    if(empty($info)) {
-        $info = array(
-            'ring' => 'WIF',
-            'flight' => 'Active',
-            'checkBuild' => '10.0.16251.0',
-            'files' => array(),
-        );
-    } else {
-        $info = json_decode($info, true);
-    }
-
-    if(isset($info['build'])) {
-        $build = explode('.', $info['build']);
-        $build = $build[0];
-    } else {
-        $build = 9841;
-    }
-
-    if($build >= 17063) {
-        $packs = $packs17063;
-
-        if(isset($editionMap[$desiredEdition])) {
-            $desiredEdition = $editionMap[$desiredEdition];
-        }
     }
 
     if($desiredEdition == 'UPDATEONLY') {

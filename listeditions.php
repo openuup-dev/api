@@ -16,9 +16,24 @@ limitations under the License.
 */
 
 require_once dirname(__FILE__).'/shared/main.php';
+require_once dirname(__FILE__).'/shared/packs.php';
 
-function uupListEditions($lang = 'en-us') {
-    require dirname(__FILE__).'/shared/packs.php';
+function uupListEditions($lang = 'en-us', $updateId = 0) {
+    if($updateId) {
+        $info = uupUpdateInfo($updateId, 'build');
+    }
+
+    if(isset($info['info'])) {
+        $build = explode('.', $info['info']);
+        $build = $build[0];
+    } else {
+        $build = 9841;
+    }
+
+    $packs = uupGetPacks($build);
+    $packsForLangs = $packs['packsForLangs'];
+    $fancyEditionNames = $packs['fancyEditionNames'];
+    $packs = $packs['packs'];
 
     if($lang) {
         $lang = strtolower($lang);
