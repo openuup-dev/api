@@ -17,6 +17,7 @@ limitations under the License.
 
 require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/packs.php';
+require_once dirname(__FILE__).'/updateinfo.php';
 
 function uupListLangs($updateId = 0) {
     if($updateId) {
