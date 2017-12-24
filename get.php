@@ -60,6 +60,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     $packs = uupGetPacks($build);
     $packsForLangs = $packs['packsForLangs'];
     $editionPacks = $packs['editionPacks'];
+    $checkEditions = $packs['allEditions'];
     $packs = $packs['packs'];
 
     if($usePack) {
@@ -88,6 +89,8 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             return array('error' => 'UNSUPPORTED_COMBINATION');
         }
         unset($supported);
+
+        $checkEditions = array($desiredEdition);
     }
 
     if($desiredEdition == 'UPDATEONLY') {
@@ -226,6 +229,24 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     }
 
     if($usePack && $desiredEdition != 'UPDATEONLY') {
+        $esd = array_keys($files);
+        $esd = preg_grep('/\.esd$/i', $esd);
+
+        foreach($esd as $key => $val) {
+            $esd[$key] = strtoupper($val);
+        }
+
+        foreach($checkEditions as $val) {
+            $testEsd[] = $val.'_'.strtoupper($usePack).'.ESD';
+        }
+
+        $foundMetadata = array_intersect($testEsd, $esd);
+        consoleLogger('Found '.count($foundMetadata).' metadata ESD file(s).');
+
+        if(empty($foundMetadata)) {
+            return array('error' => 'NO_METADATA_ESD');
+        }
+
         $removeFiles = array();
         $removeFiles[0] = preg_grep('/RetailDemo-OfflineContent/i', $filesKeys);
         $removeFiles[1] = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
