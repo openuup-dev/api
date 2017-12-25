@@ -59,6 +59,8 @@ function uupGetPacks($build = 15063) {
 
     $allEditions = array(
         'ANALOGONECORE',
+        'CLOUD',
+        'CLOUDN',
         'CORE',
         'CORECOUNTRYSPECIFIC',
         'COREN',
@@ -81,6 +83,7 @@ function uupGetPacks($build = 15063) {
         'ENTERPRISESN',
         'ENTERPRISESNEVAL',
         'IOTUAP',
+        'MOBILECORE',
         'PPIPRO',
         'PROFESSIONAL',
         'PROFESSIONALCOUNTRYSPECIFIC',
