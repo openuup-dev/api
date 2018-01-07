@@ -109,7 +109,13 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
         $updateTitle = 'Windows 10 build '.$foundBuild;
     }
 
-    $updateTitle = preg_replace('/ for .{3,5}-based systems/i', '', $updateTitle);
+    $isCumulativeUpdate = 0;
+    if(preg_match('/Cumulative Update/', $updateTitle)) {
+        $updateTitle = preg_replace('/.*Cumulative Update/i', 'Cumulative Update', $updateTitle);
+        $updateTitle = preg_replace('/ for .{3,5}-based systems| \(KB.*?\)/i', '', $updateTitle);
+        $updateTitle = $updateTitle.' ('.$foundBuild.')';
+        $isCumulativeUpdate = 1;
+    }
 
     if(preg_match('/Feature update/i', $updateTitle)) {
         $updateTitle = $updateTitle.' ('.$foundBuild.')';
@@ -171,7 +177,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
         $temp['build'] = $foundBuild;
         $temp['checkBuild'] = $build;
 
-        if(preg_match('/Cumulative Update/', $updateTitle)) {
+        if($isCumulativeUpdate) {
             $temp['containsCU'] = 1;
         }
 
