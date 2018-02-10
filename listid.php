@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2017 UUP dump API authors
+Copyright 2018 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ limitations under the License.
 
 require_once dirname(__FILE__).'/shared/main.php';
 
-function uupListIds() {
+function uupListIds($search = null) {
     uupApiPrintBrand();
 
     if(!file_exists('fileinfo')) return array('error' => 'NO_FILEINFO_DIR');
@@ -98,6 +98,32 @@ function uupListIds() {
         );
 
         if(!$success) consoleLogger('Failed to update database cache.');
+    }
+
+    if($search) {
+        $searchSafe = preg_quote($search, '/');
+        if(preg_match('/^".*"$/', $searchSafe)) {
+            $searchSafe = preg_replace('/^"|"$/', '', $searchSafe);
+        } else {
+            $searchSafe = str_replace(' ', '.*', $searchSafe);
+        }
+
+        foreach($builds as $key => $val) {
+            $buildString[$key] = $val['title'].' '.$val['build'].' '.$val['arch'];
+        }
+
+        $remove = preg_grep('/.*'.$searchSafe.'.*/i', $buildString, PREG_GREP_INVERT);
+        $removeKeys = array_keys($remove);
+
+        foreach($removeKeys as $value) {
+            unset($builds[$value]);
+        }
+
+        if(empty($builds)) {
+            return array('error' => 'SEARCH_NO_RESULTS');
+        }
+
+        unset($remove, $removeKeys, $buildString);
     }
 
     return array(
