@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2017 UUP dump API authors
+Copyright 2018 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch) {
     $attrib = array(
         'App=WU',
         'AppVer='.$build,
-        'AttrDataVer=30',
+        'AttrDataVer=38',
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
         'DeviceFamily=Windows.Desktop',
@@ -38,6 +38,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch) {
         'FlightRing='.$ring,
         'Free=32to64',
         'GStatus_RS3=2',
+        'GStatus_RS4=2',
         'InstallationType=Client',
         'InstallLanguage=en-US',
         'IsDeviceRetailDemo=0',
@@ -54,10 +55,11 @@ function composeDeviceAttributes($flight, $ring, $build, $arch) {
         'TelemetryLevel=1',
         'UpdateManagementGroup=2',
         'UpgEx_RS3=Green',
+        'UpgEx_RS4=Green',
         'WuClientVer='.$build,
     );
 
-    return 'E:'.implode('&amp;', $attrib);
+    return implode(';', $attrib);
 }
 
 // Returns the most possible branch for selected build
