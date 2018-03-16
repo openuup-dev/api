@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2017 UUP dump API authors
+Copyright 2018 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -148,8 +148,10 @@ function uupGetPacks($build = 15063) {
         require dirname(__FILE__).'/packs/legacy.php';
     } elseif ($build >= 17063 && $build < 17093) {
         require dirname(__FILE__).'/packs/17063.php';
-    } elseif ($build >= 17093) {
+    } elseif ($build >= 17093 && $build < 17623) {
         require dirname(__FILE__).'/packs/17093.php';
+    } elseif ($build >= 17623) {
+        require dirname(__FILE__).'/packs/17623.php';
     }
 
     return array(
