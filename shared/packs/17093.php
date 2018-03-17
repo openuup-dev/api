@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2017 UUP dump API authors
+Copyright 2018 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -178,10 +178,10 @@ $editionPacks = array(
 );
 
 $fancyEditionNames = array(
-    'CORE' => 'Windows 10 Home / Home Single Language',
+    'CORE' => 'Windows 10 Home',
     'CORECOUNTRYSPECIFIC' => 'Windows 10 Home China',
     'COREN' => 'Windows 10 Home N',
-    'PROFESSIONAL' => 'Windows 10 Pro / Enterprise / Education',
-    'PROFESSIONALN' => 'Windows 10 Pro N / Enterprise N / Education N',
+    'PROFESSIONAL' => 'Windows 10 Pro',
+    'PROFESSIONALN' => 'Windows 10 Pro N',
 );
 ?>

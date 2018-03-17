@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2017 UUP dump API authors
+Copyright 2018 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
 
     $out = html_entity_decode($out);
-    consoleLogger('Information was successfully fetched.');
+    consoleLogger('Information has been successfully fetched.');
 
     consoleLogger('Checking build information...');
     preg_match_all('/<UpdateInfo>.*?<\/UpdateInfo>/', $out, $updateInfos);
@@ -128,12 +128,18 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     $updateRev = preg_replace('/RevisionNumber="|"$/', '', $updateRev[0]);
 
     consoleLogger('Successfully checked build information.');
-    consoleLogger('BUILD: '.$updateTitle.' '.$arch);
 
     $updateString = $updateId;
     if($updateRev != 1) {
         $updateString = $updateId.'_rev.'.$updateRev;
     }
+
+    consoleLogger("--- UPDATE INFORMATION ---");
+    consoleLogger("Title:        ".$updateTitle);
+    consoleLogger("Architecture: ".$arch);
+    consoleLogger("Build number: ".$foundBuild);
+    consoleLogger("Update ID:    ".$updateString);
+    consoleLogger("--- UPDATE INFORMATION ---");
 
     $fileWrite = 'NO_SAVE';
     if(!file_exists('fileinfo/'.$updateString.'.json')) {

@@ -27,6 +27,7 @@ $packs = array(
             'Microsoft-Windows-ContactSupport-Package',
             'Microsoft-Windows-Not-Supported-On-LTSB-Package',
             'Microsoft-Windows-Not-Supported-On-LTSB-WOW64-Package',
+            'Microsoft-Windows-Not-Supported-On-LTSB-arm64arm-Package',
             'Microsoft-Windows-RegulatedPackages-Package',
             'Microsoft-Windows-RegulatedPackages-WOW64-Package',
             'Microsoft-Windows-RegulatedPackages-arm64arm-Package',
@@ -181,10 +182,10 @@ $editionPacks = array(
 );
 
 $fancyEditionNames = array(
-    'CORE' => 'Windows 10 Home / Home Single Language',
+    'CORE' => 'Windows 10 Home',
     'CORECOUNTRYSPECIFIC' => 'Windows 10 Home China',
     'COREN' => 'Windows 10 Home N',
-    'PROFESSIONAL' => 'Windows 10 Pro / Enterprise / Education',
-    'PROFESSIONALN' => 'Windows 10 Pro N / Enterprise N / Education N',
+    'PROFESSIONAL' => 'Windows 10 Pro',
+    'PROFESSIONALN' => 'Windows 10 Pro N',
 );
 ?>
