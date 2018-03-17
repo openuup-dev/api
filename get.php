@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2017 UUP dump API authors
+Copyright 2018 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -71,32 +71,37 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     }
 
     $desiredEdition = strtoupper($desiredEdition);
-    if($desiredEdition && $desiredEdition != 'UPDATEONLY') {
-        if(!$usePack) {
-            return array('error' => 'UNSPECIFIED_LANG');
-        }
 
-        if(!isset($editionPacks[$desiredEdition])) {
-            return array('error' => 'UNSUPPORTED_EDITION');
-        }
+    switch($desiredEdition) {
+        case 0: break;
+        case 'WUBFILE': break;
 
-        $supported = 0;
-        foreach($packsForLangs[$usePack] as $val) {
-            if($editionPacks[$desiredEdition] == $val) $supported = 1;
-        }
+        case 'UPDATEONLY':
+            if(!isset($info['containsCU']) || !$info['containsCU']) {
+                return array('error' => 'NOT_CUMULATIVE_UPDATE');
+            }
+            break;
 
-        if(!$supported) {
-            return array('error' => 'UNSUPPORTED_COMBINATION');
-        }
-        unset($supported);
+        default:
+            if(!$usePack) {
+                return array('error' => 'UNSPECIFIED_LANG');
+            }
+            if(!isset($editionPacks[$desiredEdition])) {
+                return array('error' => 'UNSUPPORTED_EDITION');
+            }
 
-        $checkEditions = array($desiredEdition);
-    }
+            $supported = 0;
+            foreach($packsForLangs[$usePack] as $val) {
+                if($editionPacks[$desiredEdition] == $val) $supported = 1;
+            }
 
-    if($desiredEdition == 'UPDATEONLY') {
-        if(!isset($info['containsCU']) || !$info['containsCU']) {
-            return array('error' => 'NOT_CUMULATIVE_UPDATE');
-        }
+            if(!$supported) {
+                return array('error' => 'UNSUPPORTED_COMBINATION');
+            }
+            unset($supported);
+
+            $checkEditions = array($desiredEdition);
+            break;
     }
 
     $rev = 1;
@@ -215,20 +220,33 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     unset($removeFiles);
 
     $filesKeys = array_keys($files);
-    if($desiredEdition == 'UPDATEONLY') {
-        $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
 
-        foreach($removeFiles as $val) {
-            if(isset($files[$val])) unset($files[$val]);
-        }
+    switch($desiredEdition) {
+        case 'UPDATEONLY':
+            $skipPackBuild = 1;
+            $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
 
-        unset($removeFiles, $temp);
-        $filesKeys = array_keys($files);
+            foreach($removeFiles as $val) {
+                if(isset($files[$val])) unset($files[$val]);
+            }
 
-        $filesKeys = preg_grep('/Windows10\.0-KB/i', $filesKeys);
+            unset($removeFiles, $temp);
+            $filesKeys = array_keys($files);
+
+            $filesKeys = preg_grep('/Windows10\.0-KB/i', $filesKeys);
+            break;
+
+        case 'WUBFILE':
+            $skipPackBuild = 1;
+            $filesKeys = preg_grep('/WindowsUpdateBox.exe/i', $filesKeys);
+            break;
+
+        default:
+            $skipPackBuild = 0;
+            break;
     }
 
-    if($usePack && $desiredEdition != 'UPDATEONLY') {
+    if($usePack && !$skipPackBuild) {
         $esd = array_keys($files);
         $esd = preg_grep('/\.esd$/i', $esd);
 
