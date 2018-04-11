@@ -43,6 +43,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         $info = array(
             'ring' => 'WIF',
             'flight' => 'Active',
+            'arch' => 'amd64',
             'checkBuild' => '10.0.16251.0',
             'files' => array(),
         );

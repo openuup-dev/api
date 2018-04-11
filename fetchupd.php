@@ -66,17 +66,50 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     $out = html_entity_decode($out);
     consoleLogger('Information has been successfully fetched.');
 
-    consoleLogger('Checking build information...');
     preg_match_all('/<UpdateInfo>.*?<\/UpdateInfo>/', $out, $updateInfos);
     $updateInfo = preg_grep('/<Action>Install<\/Action>/', $updateInfos[0]);
     sort($updateInfo);
 
-    if(empty($updateInfo[0])) {
+    if(empty($updateInfo)) {
         consoleLogger('An error has occurred');
         return array('error' => 'NO_UPDATE_FOUND');
     }
 
-    $updateNumId = preg_replace('/<UpdateInfo><ID>|<\/ID>.*/i', '', $updateInfo[0]);
+    $errorCount = 0;
+    $updatesNum = count($updateInfo);
+    $num = 0;
+    $updateArray = array();
+
+    foreach($updateInfo as $val) {
+        $num++;
+        consoleLogger("Checking build information for update {$num} of {$updatesNum}...");
+
+        $info = parseFetchUpdate($val, $out, $arch, $ring, $flight, $build);
+        if(isset($info['error'])) {
+            $errorCount++;
+            continue;
+        }
+
+        $updateArray[] = $info;
+    }
+
+    if($errorCount == $updatesNum) {
+        return array('error' => 'EMPTY_FILELIST');
+    }
+
+    return array(
+        'apiVersion' => uupApiVersion(),
+        'updateId' => $updateArray[0]['updateId'],
+        'updateTitle' => $updateArray[0]['updateTitle'],
+        'foundBuild' => $updateArray[0]['foundBuild'],
+        'arch' => $updateArray[0]['arch'],
+        'fileWrite' => $updateArray[0]['foundBuild'],
+        'updateArray' => $updateArray,
+    );
+}
+
+function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build) {
+    $updateNumId = preg_replace('/<UpdateInfo><ID>|<\/ID>.*/i', '', $updateInfo);
 
     $updates = preg_replace('/<Update>/', "\n<Update>", $out);
     preg_match_all('/<Update>.*<\/Update>/', $updates, $updates);
@@ -93,7 +126,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
         return array('error' => 'EMPTY_FILELIST');
     }
 
-    preg_match('/Version\=".*?"/', $updateInfo[0], $foundBuild);
+    preg_match('/Version\=".*?"/', $updateInfo, $foundBuild);
     $foundBuild = preg_replace('/Version="10\.0\.|"/', '', $foundBuild[0]);
 
     $updateTitle = preg_grep('/<Title>.*<\/Title>/', $updateMeta);
@@ -111,18 +144,21 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
 
     $isCumulativeUpdate = 0;
     if(preg_match('/Cumulative Update/', $updateTitle)) {
+        $isCumulativeUpdate = 1;
         $updateTitle = preg_replace('/.*Cumulative Update/i', 'Cumulative Update', $updateTitle);
         $updateTitle = preg_replace('/ for .{3,5}-based systems| \(KB.*?\)/i', '', $updateTitle);
-        $updateTitle = $updateTitle.' ('.$foundBuild.')';
-        $isCumulativeUpdate = 1;
+
+        if(!preg_match("/$foundBuild/", $updateTitle)) {
+            $updateTitle = $updateTitle.' ('.$foundBuild.')';
+        }
     }
 
     if(preg_match('/Feature update/i', $updateTitle)) {
         $updateTitle = $updateTitle.' ('.$foundBuild.')';
     }
 
-    preg_match('/UpdateID=".*?"/', $updateInfo[0], $updateId);
-    preg_match('/RevisionNumber=".*?"/', $updateInfo[0], $updateRev);
+    preg_match('/UpdateID=".*?"/', $updateInfo, $updateId);
+    preg_match('/RevisionNumber=".*?"/', $updateInfo, $updateRev);
 
     $updateId = preg_replace('/UpdateID="|"$/', '', $updateId[0]);
     $updateRev = preg_replace('/RevisionNumber="|"$/', '', $updateRev[0]);
@@ -218,7 +254,6 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     }
 
     return array(
-        'apiVersion' => uupApiVersion(),
         'updateId' => $updateString,
         'updateTitle' => $updateTitle,
         'foundBuild' => $foundBuild,
