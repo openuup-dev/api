@@ -184,4 +184,7 @@ $fancyEditionNames = array(
     'PROFESSIONAL' => 'Windows 10 Pro',
     'PROFESSIONALN' => 'Windows 10 Pro N',
 );
+
+$skipNeutral = array();
+$skipLangPack = array();
 ?>

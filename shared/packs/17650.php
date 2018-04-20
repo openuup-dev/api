@@ -20,6 +20,9 @@ $packs = array(
     0 => array(
         'editionNeutral' => array(
             'Microsoft-Windows-Foundation-Package',
+            'Microsoft-Windows-Client-Desktop-Required',
+            'Microsoft-Windows-Client-Desktop-Required-WOW64-Package',
+            'Microsoft-Windows-Client-Desktop-Required-arm64arm-Package',
             'Microsoft-Windows-Client-Features-Package',
             'Microsoft-Windows-Client-Features-WOW64-Package',
             'Microsoft-Windows-Client-Features-arm64arm-Package',
@@ -39,7 +42,7 @@ $packs = array(
             'Microsoft-Windows-MediaPlayer-Package',
             'Microsoft-Windows-Hello-Face-Resource-.-Package',
             'Microsoft-OneCore-ApplicationModel-Sync-Desktop-FOD-Package',
-            'Microsoft-Windows-Desktop-Required-Package',
+            'Microsoft-Windows-TabletPCMath-Package',
             'OpenSSH-Client-Package',
             'Windows10\.0-KB',
         ),
@@ -63,6 +66,7 @@ $packs = array(
             'Microsoft\.ModernApps\.Client\.All',
             'Microsoft\.ModernApps\.Client\.professional',
         ),
+        'CLOUDE' => array(),
     ),
 
     // European "N" Editions
@@ -174,6 +178,7 @@ $packsForLangs = array(
 );
 
 $editionPacks = array(
+    'CLOUDE' => 0,
     'CORE' => 0,
     'CORECOUNTRYSPECIFIC' => 2,
     'COREN' => 1,
@@ -182,6 +187,7 @@ $editionPacks = array(
 );
 
 $fancyEditionNames = array(
+    'CLOUDE' => 'Windows 10 Lean',
     'CORE' => 'Windows 10 Home',
     'CORECOUNTRYSPECIFIC' => 'Windows 10 Home China',
     'COREN' => 'Windows 10 Home N',
@@ -189,6 +195,11 @@ $fancyEditionNames = array(
     'PROFESSIONALN' => 'Windows 10 Pro N',
 );
 
-$skipNeutral = array();
-$skipLangPack = array();
+$skipNeutral = array(
+    'CLOUDE' => 1,
+);
+
+$skipLangPack = array(
+    'CLOUDE' => 1,
+);
 ?>

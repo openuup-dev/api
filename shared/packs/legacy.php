@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2017 UUP dump API authors
+Copyright 2018 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -267,4 +267,7 @@ $fancyEditionNames = array(
     'PROFESSIONAL' => 'Windows 10 Pro',
     'PROFESSIONALN' => 'Windows 10 Pro N',
 );
+
+$skipNeutral = array();
+$skipLangPack = array();
 ?>

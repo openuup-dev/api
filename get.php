@@ -62,7 +62,12 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     $packsForLangs = $packs['packsForLangs'];
     $editionPacks = $packs['editionPacks'];
     $checkEditions = $packs['allEditions'];
+    $skipNeutral = $packs['skipNeutral'];
+    $skipLangPack = $packs['skipLangPack'];
     $packs = $packs['packs'];
+
+    $noLangPack = 0;
+    $noNeutral = 0;
 
     if($usePack) {
         $usePack = strtolower($usePack);
@@ -73,8 +78,10 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
 
     $desiredEdition = strtoupper($desiredEdition);
 
+
+
     switch($desiredEdition) {
-        case 0: break;
+        case '0': break;
         case 'WUBFILE': break;
 
         case 'UPDATEONLY':
@@ -101,8 +108,30 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             }
             unset($supported);
 
+
+
+            if(isset($skipLangPack[$desiredEdition])) {
+                if($skipLangPack[$desiredEdition]) {
+                    $noLangPack = 1;
+                }
+            }
+
+            if(isset($skipNeutral[$desiredEdition])) {
+                if($skipNeutral[$desiredEdition]) {
+                    $noNeutral = 1;
+                }
+            }
+
             $checkEditions = array($desiredEdition);
             break;
+    }
+
+    if($noNeutral) {
+        foreach($packsForLangs[$usePack] as $num) {
+            if(isset($packs[$num]['editionNeutral'])) {
+                unset($packs[$num]['editionNeutral']);
+            }
+        }
     }
 
     $rev = 1;
@@ -282,11 +311,14 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         $filesKeys = array_keys($files);
         $filesTemp = array();
 
-        $temp = preg_grep('/.*'.$usePack.'-Package.*/i', $filesKeys);
-        $filesTemp = array_merge($filesTemp, $temp);
 
-        $temp = preg_grep('/.*'.$usePack.'_lp..../i', $filesKeys);
-        $filesTemp = array_merge($filesTemp, $temp);
+        if(!$noLangPack) {
+            $temp = preg_grep('/.*'.$usePack.'-Package.*/i', $filesKeys);
+            $filesTemp = array_merge($filesTemp, $temp);
+
+            $temp = preg_grep('/.*'.$usePack.'_lp..../i', $filesKeys);
+            $filesTemp = array_merge($filesTemp, $temp);
+        }
 
         foreach($packsForLangs[$usePack] as $num) {
             foreach($packs[$num] as $key => $val) {

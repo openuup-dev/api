@@ -61,6 +61,7 @@ function uupGetPacks($build = 15063) {
         'ANALOGONECORE',
         'ANDROMEDA',
         'CLOUD',
+        'CLOUDE',
         'CLOUDN',
         'CORE',
         'CORECOUNTRYSPECIFIC',
@@ -148,6 +149,8 @@ function uupGetPacks($build = 15063) {
 
     if($build < 17063) {
         require dirname(__FILE__).'/packs/legacy.php';
+    } elseif ($build >= 17650) {
+        require dirname(__FILE__).'/packs/17650.php';
     } elseif ($build >= 17634) {
         require dirname(__FILE__).'/packs/17634.php';
     } elseif ($build >= 17623) {
@@ -165,6 +168,8 @@ function uupGetPacks($build = 15063) {
         'fancyEditionNames' => $fancyEditionNames,
         'fancyLangNames' => $fancyLangNames,
         'allEditions' => $allEditions,
+        'skipNeutral' => $skipNeutral,
+        'skipLangPack' => $skipLangPack,
     );
 }
 ?>
