@@ -42,6 +42,7 @@ $packs = array(
             'Microsoft-Windows-MediaPlayer-Package',
             'Microsoft-Windows-Hello-Face-Resource-.-Package',
             'Microsoft-OneCore-ApplicationModel-Sync-Desktop-FOD-Package',
+            'Microsoft-Windows-TabletPCMath-Package',
             'Microsoft-Windows-Hello-Face-Migration-Package',
             'Microsoft-Windows-Hello-Face-Package',
             'OpenSSH-Client-Package',
