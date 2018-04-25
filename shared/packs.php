@@ -149,6 +149,8 @@ function uupGetPacks($build = 15063) {
 
     if($build < 17063) {
         require dirname(__FILE__).'/packs/legacy.php';
+    } elseif ($build >= 17655) {
+        require dirname(__FILE__).'/packs/17655.php';
     } elseif ($build >= 17650) {
         require dirname(__FILE__).'/packs/17650.php';
     } elseif ($build >= 17634) {
