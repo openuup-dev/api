@@ -22,22 +22,6 @@ require_once dirname(__FILE__).'/shared/packs.php';
 function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePack = 0, $desiredEdition = 0) {
     uupApiPrintBrand();
 
-    function packsByEdition($edition, $pack, $lang, $filesKeys) {
-        $filesTemp = array();
-
-        if($edition != 'editionNeutral') {
-            $temp = preg_grep('/'.$edition.'_'.$lang.'\.esd/i', $filesKeys);
-            $filesTemp = array_merge($filesTemp, $temp);
-        }
-
-        foreach($pack as $val) {
-            $temp = preg_grep('/'.$val.'.*/i', $filesKeys);
-            $filesTemp = array_merge($filesTemp, $temp);
-        }
-
-        return $filesTemp;
-    }
-
     $info = @file_get_contents('fileinfo/'.$updateId.'.json');
     if(empty($info)) {
         $info = array(
@@ -78,8 +62,6 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
 
     $desiredEdition = strtoupper($desiredEdition);
 
-
-
     switch($desiredEdition) {
         case '0': break;
         case 'WUBFILE': break;
@@ -107,8 +89,6 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
                 return array('error' => 'UNSUPPORTED_COMBINATION');
             }
             unset($supported);
-
-
 
             if(isset($skipLangPack[$desiredEdition])) {
                 if($skipLangPack[$desiredEdition]) {
@@ -144,7 +124,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     consoleLogger('Fetching information from the server...');
     $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev);
     $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
-    consoleLogger('Information was successfully fetched.');
+    consoleLogger('Information has been successfully fetched.');
 
     consoleLogger('Parsing information...');
     preg_match_all('/<FileLocation>.*?<\/FileLocation>/', $out, $out);
@@ -311,7 +291,6 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         $filesKeys = array_keys($files);
         $filesTemp = array();
 
-
         if(!$noLangPack) {
             $temp = preg_grep('/.*'.$usePack.'-Package.*/i', $filesKeys);
             $filesTemp = array_merge($filesTemp, $temp);
@@ -355,5 +334,21 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         'build' => $updateBuild,
         'files' => $files,
     );
+}
+
+function packsByEdition($edition, $pack, $lang, $filesKeys) {
+    $filesTemp = array();
+
+    if($edition != 'editionNeutral') {
+        $temp = preg_grep('/'.$edition.'_'.$lang.'\.esd/i', $filesKeys);
+        $filesTemp = array_merge($filesTemp, $temp);
+    }
+
+    foreach($pack as $val) {
+        $temp = preg_grep('/'.$val.'.*/i', $filesKeys);
+        $filesTemp = array_merge($filesTemp, $temp);
+    }
+
+    return $filesTemp;
 }
 ?>
