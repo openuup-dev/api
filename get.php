@@ -29,6 +29,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             'flight' => 'Active',
             'arch' => 'amd64',
             'checkBuild' => '10.0.16251.0',
+            'sku' => '48',
             'files' => array(),
         );
     } else {
@@ -42,6 +43,10 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         $build = 9841;
     }
 
+    if(!isset($info['sku'])) {
+        $info['sku'] = 48;
+    }
+
     $packs = uupGetPacks($build);
     $packsForLangs = $packs['packsForLangs'];
     $editionPacks = $packs['editionPacks'];
@@ -53,6 +58,25 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     $noLangPack = 0;
     $noNeutral = 0;
 
+    $useGeneratedPacks = 0;
+
+    if(file_exists('packs/'.$updateId.'.json.gz') && $usePack) {
+        $genPack = @gzdecode(@file_get_contents('packs/'.$updateId.'.json.gz'));
+
+        if(!empty($genPack)) {
+            $genPack = json_decode($genPack, 1);
+
+            if(!isset($genPack[$usePack])) {
+                return array('error' => 'UNSUPPORTED_LANG');
+            }
+
+            $packsForLangs = array();
+            $packsForLangs[$usePack] = array(0);
+
+            $useGeneratedPacks = 1;
+        }
+    }
+
     if($usePack) {
         $usePack = strtolower($usePack);
         if(!isset($packsForLangs[$usePack])) {
@@ -63,7 +87,22 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     $desiredEdition = strtoupper($desiredEdition);
 
     switch($desiredEdition) {
-        case '0': break;
+        case '0':
+            if($useGeneratedPacks) {
+                $desiredEdition = 'GENERATEDPACKS';
+
+                $filesList = array();
+                foreach($genPack[$usePack] as $val) {
+                    foreach($val as $package) {
+                        $filesList[] = $package;
+                    }
+                }
+
+                array_unique($filesList);
+                sort($filesList);
+            }
+            break;
+
         case 'WUBFILE': break;
 
         case 'UPDATEONLY':
@@ -73,9 +112,20 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             break;
 
         default:
+            if($useGeneratedPacks) {
+                if(!isset($genPack[$usePack][$desiredEdition])) {
+                    return array('error' => 'UNSUPPORTED_COMBINATION');
+                }
+
+                $filesList = $genPack[$usePack][$desiredEdition];
+                $desiredEdition = 'GENERATEDPACKS';
+                break;
+            }
+
             if(!$usePack) {
                 return array('error' => 'UNSPECIFIED_LANG');
             }
+
             if(!isset($editionPacks[$desiredEdition])) {
                 return array('error' => 'UNSUPPORTED_EDITION');
             }
@@ -253,6 +303,10 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             $filesKeys = preg_grep('/WindowsUpdateBox.exe/i', $filesKeys);
             break;
 
+        case 'GENERATEDPACKS':
+            $skipPackBuild = 1;
+            break;
+
         default:
             $skipPackBuild = 0;
             break;
@@ -312,6 +366,20 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
 
         $filesKeys = array_unique($filesTemp);
         unset($filesTemp, $temp, $val, $num);
+    }
+
+    if($desiredEdition == 'GENERATEDPACKS') {
+        $newFiles = array();
+        foreach($filesList as $val) {
+            $name = preg_replace('/~31bf3856ad364e35/', '', $val);
+            $name = preg_replace('/~~\.|~\./', '.', $name);
+            $name = preg_replace('/~/', '-', $name);
+
+            $newFiles[$name] = $files[$name];
+        }
+
+        $files = $newFiles;
+        $filesKeys = array_keys($files);
     }
 
     if(empty($filesKeys)) {

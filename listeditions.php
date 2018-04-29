@@ -36,6 +36,24 @@ function uupListEditions($lang = 'en-us', $updateId = 0) {
     $fancyEditionNames = $packs['fancyEditionNames'];
     $packs = $packs['packs'];
 
+    if(file_exists('packs/'.$updateId.'.json.gz')) {
+        $genPack = @gzdecode(@file_get_contents('packs/'.$updateId.'.json.gz'));
+
+        if(!empty($genPack)) {
+            $genPack = json_decode($genPack, 1);
+
+            if(!isset($genPack[$lang])) {
+                return array('error' => 'UNSUPPORTED_LANG');
+            }
+
+            $packsForLangs = array();
+            $packsForLangs[$lang] = array(0);
+
+            $packs = array();
+            $packs[0] = $genPack[$lang];
+        }
+    }
+
     if($lang) {
         $lang = strtolower($lang);
         if(!isset($packsForLangs[$lang])) {
@@ -55,9 +73,8 @@ function uupListEditions($lang = 'en-us', $updateId = 0) {
                 $fancyName = $edition;
             }
 
-            $temp = array($edition => $fancyName);
-            $editionList = array_merge($editionList, array($edition));
-            $editionListFancy = array_merge($editionListFancy, $temp);
+            $editionList[] = $edition;
+            $editionListFancy[$edition] = $fancyName;
         }
     }
 

@@ -16,7 +16,7 @@ limitations under the License.
 */
 
 // Composes DeviceAttributes parameter needed to fetch data
-function composeDeviceAttributes($flight, $ring, $build, $arch) {
+function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $branch = branchFromBuild($build);
 
     if($ring == 'RETAIL') {
@@ -46,7 +46,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch) {
         'OEMModel=Microsoft',
         'OEMName_Uncleaned=Microsoft',
         'OSArchitecture='.$arch,
-        'OSSkuId=48',
+        'OSSkuId='.$sku,
         'OSUILocale=en-US',
         'OSVersion='.$build,
         'PonchAllow=1',
@@ -100,14 +100,15 @@ function composeFileGetRequest($updateId, $device, $info, $rev = 1) {
         $info['flight'],
         $info['ring'],
         $info['checkBuild'],
-        $info['arch']
+        $info['arch'],
+        $info['sku']
     );
 
     return '<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><a:Action s:mustUnderstand="1">http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/GetExtendedUpdateInfo2</a:Action><a:MessageID>urn:uuid:'.$uuid.'</a:MessageID><a:To s:mustUnderstand="1">https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured</a:To><o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><Timestamp xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><Created>'.$created.'</Created><Expires>'.$expires.'</Expires></Timestamp><wuws:WindowsUpdateTicketsToken wsu:id="ClientMSA" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wuws="http://schemas.microsoft.com/msus/2014/10/WindowsUpdateAuthorization"><TicketType Name="MSA" Version="1.0" Policy="MBI_SSL"><Device>'.$device.'</Device></TicketType></wuws:WindowsUpdateTicketsToken></o:Security></s:Header><s:Body><GetExtendedUpdateInfo2 xmlns="http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService"><updateIDs><UpdateIdentity><UpdateID>'.$updateId.'</UpdateID><RevisionNumber>'.$rev.'</RevisionNumber></UpdateIdentity></updateIDs><infoTypes><XmlUpdateFragmentType>FileUrl</XmlUpdateFragmentType><XmlUpdateFragmentType>FileDecryption</XmlUpdateFragmentType></infoTypes><deviceAttributes>'.$deviceAttributes.'</deviceAttributes></GetExtendedUpdateInfo2></s:Body></s:Envelope>';
 }
 
 // Composes POST data for fetching the latest update information from Windows Update
-function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build) {
+function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build, $sku = 48) {
     $uuid = randStr(8).'-'.randStr(4).'-'.randStr(4).'-'.randStr(4).'-'.randStr(12);
 
     $createdTime = time();
@@ -138,7 +139,8 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $flight,
         $ring,
         $build,
-        $arch
+        $arch,
+        $sku
     );
 
     return '<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><a:Action s:mustUnderstand="1">http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/SyncUpdates</a:Action><a:MessageID>urn:uuid:'.$uuid.'</a:MessageID><a:To s:mustUnderstand="1">https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx</a:To><o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><Timestamp xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><Created>'.$created.'</Created><Expires>'.$expires.'</Expires></Timestamp><wuws:WindowsUpdateTicketsToken wsu:id="ClientMSA" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wuws="http://schemas.microsoft.com/msus/2014/10/WindowsUpdateAuthorization"><TicketType Name="MSA" Version="1.0" Policy="MBI_SSL"><Device>'.$device.'</Device></TicketType></wuws:WindowsUpdateTicketsToken></o:Security></s:Header><s:Body><SyncUpdates xmlns="http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService"><cookie><Expiration>2045-04-07T12:38:34Z</Expiration><EncryptedData>'.$encData.'</EncryptedData></cookie><parameters><ExpressQuery>false</ExpressQuery><InstalledNonLeafUpdateIDs></InstalledNonLeafUpdateIDs><OtherCachedUpdateIDs></OtherCachedUpdateIDs><SkipSoftwareSync>false</SkipSoftwareSync><NeedTwoGroupOutOfScopeUpdates>true</NeedTwoGroupOutOfScopeUpdates><AlsoPerformRegularSync>true</AlsoPerformRegularSync><ComputerSpec/><ExtendedUpdateInfoParameters><XmlUpdateFragmentTypes><XmlUpdateFragmentType>Extended</XmlUpdateFragmentType><XmlUpdateFragmentType>LocalizedProperties</XmlUpdateFragmentType><XmlUpdateFragmentType>Eula</XmlUpdateFragmentType></XmlUpdateFragmentTypes><Locales><string>en-US</string></Locales></ExtendedUpdateInfoParameters><ClientPreferredLanguages></ClientPreferredLanguages><ProductsParameters><SyncCurrentVersionOnly>false</SyncCurrentVersionOnly><DeviceAttributes>'.$deviceAttributes.'</DeviceAttributes><CallerAttributes>'.$callerAttrib.'</CallerAttributes><Products>'.$products.'</Products></ProductsParameters></parameters></SyncUpdates></s:Body></s:Envelope>';

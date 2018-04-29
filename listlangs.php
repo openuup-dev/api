@@ -35,18 +35,26 @@ function uupListLangs($updateId = 0) {
     $packsForLangs = $packs['packsForLangs'];
     $fancyLangNames = $packs['fancyLangNames'];
 
+    if(file_exists('packs/'.$updateId.'.json.gz')) {
+        $genPack = @gzdecode(@file_get_contents('packs/'.$updateId.'.json.gz'));
+
+        if(!empty($genPack)) {
+            $genPack = json_decode($genPack, 1);
+            $packsForLangs = $genPack;
+        }
+    }
+
     $langList = array();
     $langListFancy = array();
     foreach($packsForLangs as $key => $val) {
-        if(isset($packsForLangs[$key])) {
+        if(isset($fancyLangNames[$key])) {
             $fancyName = $fancyLangNames[$key];
         } else {
             $fancyName = $key;
         }
 
-        $temp = array($key => $fancyName);
-        $langList = array_merge($langList, array($key));
-        $langListFancy = array_merge($langListFancy, $temp);
+        $langList[] = $key;
+        $langListFancy[$key] = $fancyName;
     }
 
     return array(

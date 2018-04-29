@@ -19,7 +19,7 @@ require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
 require_once dirname(__FILE__).'/listid.php';
 
-function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build = '16251', $minor = '0') {
+function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build = '16251', $minor = '0', $sku = '48') {
     uupApiPrintBrand();
 
     $arch = strtolower($arch);
@@ -30,6 +30,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     $build = explode('.', $build);
     if(isset($build[1])) $minor = intval($build[1]);
     $build = intval($build[0]);
+    $sku = intval($sku);
 
     if(!($arch == 'amd64' || $arch == 'x86' || $arch == 'arm64')) {
         return array('error' => 'UNKNOWN_ARCH');
@@ -60,7 +61,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     $build = '10.0.'.$build.'.'.$minor;
 
     consoleLogger('Fetching information from the server...');
-    $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build);
+    $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build, $sku);
     $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
 
     $out = html_entity_decode($out);
@@ -84,7 +85,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
         $num++;
         consoleLogger("Checking build information for update {$num} of {$updatesNum}...");
 
-        $info = parseFetchUpdate($val, $out, $arch, $ring, $flight, $build);
+        $info = parseFetchUpdate($val, $out, $arch, $ring, $flight, $build, $sku);
         if(isset($info['error'])) {
             $errorCount++;
             continue;
@@ -108,7 +109,7 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
     );
 }
 
-function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build) {
+function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku = '48') {
     $updateNumId = preg_replace('/<UpdateInfo><ID>|<\/ID>.*/i', '', $updateInfo);
 
     $updates = preg_replace('/<Update>/', "\n<Update>", $out);
@@ -218,6 +219,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build) {
         $temp['arch'] = $arch;
         $temp['build'] = $foundBuild;
         $temp['checkBuild'] = $build;
+        $temp['sku'] = $sku;
 
         if($isCumulativeUpdate) {
             $temp['containsCU'] = 1;
@@ -248,6 +250,9 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build) {
             $testName = $val['build'].' '.$val['title'].' '.$val['arch'];
             if($buildName == $testName && $val['uuid'] != $updateString) {
                 unlink(realpath('fileinfo/'.$val['uuid'].'.json'));
+                if(file_exists('packs/'.$val['uuid'].'.json.gz')) {
+                    unlink(realpath('packs/'.$val['uuid'].'.json.gz'));
+                }
                 consoleLogger('Removed superseded update: '.$val['uuid']);
             }
         }

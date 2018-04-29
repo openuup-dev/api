@@ -186,14 +186,7 @@ $editionPacks = array(
     'PROFESSIONALN' => 1,
 );
 
-$fancyEditionNames = array(
-    'CLOUDE' => 'Windows 10 Lean',
-    'CORE' => 'Windows 10 Home',
-    'CORECOUNTRYSPECIFIC' => 'Windows 10 Home China',
-    'COREN' => 'Windows 10 Home N',
-    'PROFESSIONAL' => 'Windows 10 Pro',
-    'PROFESSIONALN' => 'Windows 10 Pro N',
-);
+$fancyEditionNames['CLOUDE'] = 'Windows 10 Lean';
 
 $skipNeutral = array(
     'CLOUDE' => 1,

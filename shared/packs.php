@@ -57,6 +57,23 @@ function uupGetPacks($build = 15063) {
         'zh-tw' => 'Chinese (Traditional)',
     );
 
+    $fancyEditionNames = array(
+        'CLOUD' => 'Windows 10 S',
+        'CLOUDN' => 'Windows 10 S N',
+        'CLOUDE' => 'Windows 10 CloudE',
+        'CORE' => 'Windows 10 Home',
+        'CORECOUNTRYSPECIFIC' => 'Windows 10 Home China',
+        'COREN' => 'Windows 10 Home N',
+        'CORESINGLELANGUAGE' => 'Windows 10 Home Single Language',
+        'EDUCATION' => 'Windows 10 Education',
+        'EDUCATIONN' => 'Windows 10 Education N',
+        'ENTERPRISE' => 'Windows 10 Enterprise',
+        'ENTERPRISEN' => 'Windows 10 Enterprise N',
+        'PPIPRO' => 'Windows 10 Team',
+        'PROFESSIONAL' => 'Windows 10 Pro',
+        'PROFESSIONALN' => 'Windows 10 Pro N',
+    );
+
     $allEditions = array(
         'ANALOGONECORE',
         'ANDROMEDA',

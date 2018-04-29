@@ -177,14 +177,6 @@ $editionPacks = array(
     'PROFESSIONALN' => 1,
 );
 
-$fancyEditionNames = array(
-    'CORE' => 'Windows 10 Home',
-    'CORECOUNTRYSPECIFIC' => 'Windows 10 Home China',
-    'COREN' => 'Windows 10 Home N',
-    'PROFESSIONAL' => 'Windows 10 Pro',
-    'PROFESSIONALN' => 'Windows 10 Pro N',
-);
-
 $skipNeutral = array();
 $skipLangPack = array();
 ?>
