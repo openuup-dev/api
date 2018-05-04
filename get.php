@@ -241,7 +241,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             $temp['uuid'] = $guid;
             $temp['expire'] = $expire;
 
-            $newName = preg_replace('/cabs_|~31bf3856ad364e35/i', '', $name);
+            $newName = preg_replace('/^cabs_|~31bf3856ad364e35/i', '', $name);
             $newName = preg_replace('/~~\.|~\./', '.', $newName);
             $newName = preg_replace('/~/', '-', $newName);
 
@@ -250,16 +250,19 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     }
     unset($temp, $newName);
 
+    $baseless = preg_grep('/^baseless_/i', array_keys($files));
+    foreach($baseless as $val) {
+        if(isset($files[$val])) unset($files[$val]);
+    }
+
     $psf = array_keys($files);
     $psf = preg_grep('/\.psf$/i', $psf);
 
-    $index = 0;
     $removeFiles = array();
     foreach($psf as $val) {
         $name = preg_replace('/\.psf$/i', '', $val);
-        $removeFiles[$index] = $name;
+        $removeFiles[] = $name;
         unset($files[$val]);
-        $index++;
     }
     unset($index, $name, $psf);
 
