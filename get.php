@@ -372,6 +372,10 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     }
 
     if($desiredEdition == 'GENERATEDPACKS') {
+        $temp = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys, PREG_GREP_INVERT);
+        $temp = preg_grep('/Windows10\.0-KB/i', $temp);
+        $filesList = array_merge($filesList, $temp);
+
         $newFiles = array();
         foreach($filesList as $val) {
             $name = preg_replace('/~31bf3856ad364e35/', '', $val);
