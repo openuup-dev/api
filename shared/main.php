@@ -16,7 +16,7 @@ limitations under the License.
 */
 
 function uupApiVersion() {
-    return '1.14.4';
+    return '1.15.0';
 }
 
 function uupApiPrintBrand() {

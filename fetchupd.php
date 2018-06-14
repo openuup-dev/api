@@ -19,13 +19,33 @@ require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
 require_once dirname(__FILE__).'/listid.php';
 
-function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build = '16251', $minor = '0', $sku = '48') {
+function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build = 'latest', $minor = '0', $sku = '48') {
     uupApiPrintBrand();
 
     $arch = strtolower($arch);
     $ring = strtoupper($ring);
     $flight = ucwords(strtolower($flight));
     if($flight == 'Current') $flight = 'Active';
+
+    if($build == 'latest' || (!$build)) {
+        $builds = array('17134.1');
+
+        $ids = uupListIds();
+        if(isset($ids['error'])) {
+            $ids['builds'] = array();
+        }
+
+        $ids = $ids['builds'];
+        foreach($ids as $val) {
+            $builds[] = $val['build'];
+        }
+
+        $builds = array_unique($builds);
+        rsort($builds);
+
+        $build = $builds[0];
+        unset($builds, $ids);
+    }
 
     $build = explode('.', $build);
     if(isset($build[1])) $minor = intval($build[1]);
