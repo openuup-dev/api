@@ -244,6 +244,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             $newName = preg_replace('/^cabs_|~31bf3856ad364e35/i', '', $name);
             $newName = preg_replace('/~~\.|~\./', '.', $newName);
             $newName = preg_replace('/~/', '-', $newName);
+            $newName = strtolower($newName);
 
             $files[$newName] = $temp;
         }
@@ -275,10 +276,6 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
 
     foreach($removeFiles as $val) {
         if(isset($files[$val.'.esd'])) {
-            if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
-        }
-
-        if(isset($files[$val.'.ESD'])) {
             if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
         }
     }
@@ -381,6 +378,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             $name = preg_replace('/~31bf3856ad364e35/', '', $val);
             $name = preg_replace('/~~\.|~\./', '.', $name);
             $name = preg_replace('/~/', '-', $name);
+            $name = strtolower($name);
 
             $newFiles[$name] = $files[$name];
         }
