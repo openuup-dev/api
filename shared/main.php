@@ -16,7 +16,7 @@ limitations under the License.
 */
 
 function uupApiVersion() {
-    return '1.15.1';
+    return '1.15.2';
 }
 
 function uupApiPrintBrand() {
@@ -55,6 +55,24 @@ function sendWuPostRequest($url, $postData) {
     $out = curl_exec($req);
     curl_close($req);
 
+    $outDecoded = html_entity_decode($out);
+    preg_match('/<NewCookie>.*?<\/NewCookie>/', $outDecoded, $cookieData);
+
+    if(!empty($cookieData)) {
+        preg_match('/<Expiration>.*<\/Expiration>/', $cookieData[0], $expirationDate);
+        preg_match('/<EncryptedData>.*<\/EncryptedData>/', $cookieData[0], $encryptedData);
+
+        $expirationDate = preg_replace('/<Expiration>|<\/Expiration>/', '', $expirationDate[0]);
+        $encryptedData = preg_replace('/<EncryptedData>|<\/EncryptedData>/', '', $encryptedData[0]);
+
+        $fileData = array(
+            'expirationDate' => $expirationDate,
+            'encryptedData' => $encryptedData,
+        );
+
+        @file_put_contents(dirname(__FILE__).'/cookie.json', json_encode($fileData));
+    }
+
     return $out;
 }
 
@@ -74,6 +92,15 @@ function uupDevice() {
 }
 
 function uupEncryptedData() {
-    return 'mWAGiUaiYgHfsAeIJgLgiRDyjNbyIThm35CJYPrxVEh9HAeQmequNwXuWtOJFOlHv5yT96WmtFLTh7ubpLl9H3pO4F4eCmkNqI1rWQ+CRwCUg8s5IX/mWRN1xCN3vMIl8Smkunz7/+PJ63/or2AsuDPd+bjdU0lO4tSY94mbvqJgI5mnLuRPqHY3ad+QGXBx7ipPKTt5g+g=';
+    $encData = 'o2vRpZuat2Ot2MKdwG29/fwtUpuU1XOgAr1Lrzo+dWejpj0CZiCSo6v05klhJbSrT0iylYNs8JXPA0owZvOmvvWYSs5+8u/hqUFtMgT/6Z99nhPNYD0Y00jol58NwB1RJcYWy3hzJz/5cAiZ60GRwa8zMDVbsI8qgF1AT/XKjbwsoOQNRTW5gVPDX/Fs/uICWI968NXQjiV7p2AP8poB/CCwA1cpgZPx';
+
+    $cookieInfo = @file_get_contents(dirname(__FILE__).'/cookie.json');
+    $cookieInfo = json_decode($cookieInfo, 1);
+
+    if(!empty($cookieInfo)) {
+        $encData = $cookieInfo['encryptedData'];
+    }
+
+    return $encData;
 }
 ?>
