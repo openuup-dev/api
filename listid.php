@@ -76,6 +76,13 @@ function uupListIds($search = null) {
         $builds[$tmp.$arch.$title.$uuid] = $temp;
     }
 
+    if(empty($buildAssoc)) {
+        return array(
+            'apiVersion' => uupApiVersion(),
+            'builds' => array(),
+        );
+    }
+
     krsort($buildAssoc);
     $buildsNew = array();
 
