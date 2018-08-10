@@ -21,41 +21,47 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
 
     if($ring == 'RETAIL') {
         $flightEnabled = 0;
+        $isRetail = 1;
     } else {
         $flightEnabled = 1;
+        $isRetail = 0;
     }
 
     $attrib = array(
-        'App=WU',
+        'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=38',
+        'AttrDataVer=45',
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
         'DeviceFamily=Windows.Desktop',
         'FirmwareVersion=6.00',
         'FlightContent='.$flight,
-        'FlightingBranchName=external',
         'FlightRing='.$ring,
+        'FlightingBranchName=external',
         'Free=32to64',
         'GStatus_RS3=2',
         'GStatus_RS4=2',
-        'InstallationType=Client',
+        'GStatus_RS5=2',
+        'InstallDate=1438196400',
         'InstallLanguage=en-US',
+        'InstallationType=Client',
         'IsDeviceRetailDemo=0',
         'IsFlightingEnabled='.$flightEnabled,
-        'OEMModel=Microsoft',
-        'OEMName_Uncleaned=Microsoft',
+        'IsRetailOS='.$isRetail,
+        'OEMModel=Largehard Device Model 42069',
+        'OEMModelBaseBoard=Largehard Base Board',
+        'OEMName_Uncleaned=Largehard',
         'OSArchitecture='.$arch,
         'OSSkuId='.$sku,
         'OSUILocale=en-US',
         'OSVersion='.$build,
-        'PonchAllow=1',
         'ProcessorIdentifier=Intel64 Family 6 Model 142 Stepping 9',
         'ProcessorManufacturer=GenuineIntel',
         'TelemetryLevel=1',
         'UpdateManagementGroup=2',
         'UpgEx_RS3=Green',
         'UpgEx_RS4=Green',
+        'UpgEx_RS5=Green',
         'WuClientVer='.$build,
     );
 
@@ -74,6 +80,10 @@ function branchFromBuild($build) {
 
         case 16299:
             $branch = 'rs3_release';
+            break;
+
+        case 17134:
+            $branch = 'rs4_release';
             break;
 
         default:
@@ -120,19 +130,22 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     $branch = branchFromBuild($build);
 
     $products = array(
-        'Branch='.$branch,
-        'PN=Client.OS.rs2.'.$arch,
-        'PrimaryOSProduct=1',
-        'V='.$build,
+        'PN=Client.OS.rs2.'.$arch.'&amp;Branch='.$branch.'&amp;PrimaryOSProduct=1&amp;V='.$build,
+        'PN=Windows.Appraiser.'.$arch.'&amp;V='.$build,
+        'PN=Windows.AppraiserData.'.$arch.'&amp;V='.$build,
+        'PN=Windows.EmergencyUpdate.'.$arch.'&amp;V='.$build,
+        'PN=Windows.OOBE.'.$arch.'&amp;V='.$build,
+        'PN=Windows.UpdateStackPackage.'.$arch.'&amp;Name=Update Stack Package&amp;V='.$build,
     );
 
     $callerAttrib = array(
         'Id=UpdateOrchestrator',
+        'SheddingAware=1',
         'Interactive=1',
         'IsSeeker=1',
     );
 
-    $products = implode('&amp;', $products);
+    $products = implode(';', $products);
     $callerAttrib = 'E:'.implode('&amp;', $callerAttrib);
 
     $deviceAttributes = composeDeviceAttributes(

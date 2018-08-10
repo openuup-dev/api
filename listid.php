@@ -68,9 +68,14 @@ function uupListIds($search = null) {
         );
 
         $tmp = explode('.', $build);
-        $tmp[0] = str_pad($tmp[0], 10, '0', STR_PAD_LEFT);
-        $tmp[1] = str_pad($tmp[1], 10, '0', STR_PAD_LEFT);
-        $tmp = $tmp[0].$tmp[1];
+        if(isset($tmp[1])) {
+            $tmp[0] = str_pad($tmp[0], 10, '0', STR_PAD_LEFT);
+            $tmp[1] = str_pad($tmp[1], 10, '0', STR_PAD_LEFT);
+            $tmp = $tmp[0].$tmp[1];
+        } else {
+            consoleLogger($uuid.'.json appears to be broken and may be useless.');
+            $tmp = 0;
+        }
 
         $buildAssoc[$tmp][] = $arch.$title.$uuid;
         $builds[$tmp.$arch.$title.$uuid] = $temp;
