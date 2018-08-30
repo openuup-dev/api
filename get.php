@@ -251,7 +251,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     }
     unset($temp, $newName);
 
-    $baseless = preg_grep('/^baseless_/i', array_keys($files));
+    $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($files));
     foreach($baseless as $val) {
         if(isset($files[$val])) unset($files[$val]);
     }
