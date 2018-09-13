@@ -241,7 +241,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             $temp['uuid'] = $guid;
             $temp['expire'] = $expire;
 
-            $newName = preg_replace('/^cabs_|~31bf3856ad364e35/i', '', $name);
+            $newName = preg_replace('/^cabs_|^metadataesd_|~31bf3856ad364e35/i', '', $name);
             $newName = preg_replace('/~~\.|~\./', '.', $newName);
             $newName = preg_replace('/~/', '-', $newName);
             $newName = strtolower($newName);
