@@ -28,9 +28,9 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     }
 
     $attrib = array(
-        'App=WU_OS',
+        'App=WU',
         'AppVer='.$build,
-        'AttrDataVer=45',
+        'AttrDataVer=50',
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
         'DeviceFamily=Windows.Desktop',
@@ -65,7 +65,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'WuClientVer='.$build,
     );
 
-    return implode(';', $attrib);
+    return htmlentities('E:'.implode('&', $attrib));
 }
 
 // Returns the most possible branch for selected build
@@ -130,12 +130,12 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     $branch = branchFromBuild($build);
 
     $products = array(
-        'PN=Client.OS.rs2.'.$arch.'&amp;Branch='.$branch.'&amp;PrimaryOSProduct=1&amp;V='.$build,
-        'PN=Windows.Appraiser.'.$arch.'&amp;V='.$build,
-        'PN=Windows.AppraiserData.'.$arch.'&amp;V='.$build,
-        'PN=Windows.EmergencyUpdate.'.$arch.'&amp;V='.$build,
-        'PN=Windows.OOBE.'.$arch.'&amp;V='.$build,
-        'PN=Windows.UpdateStackPackage.'.$arch.'&amp;Name=Update Stack Package&amp;V='.$build,
+        'PN=Client.OS.rs2.'.$arch.'&Branch='.$branch.'&PrimaryOSProduct=1&V='.$build,
+        'PN=Windows.Appraiser.'.$arch.'&V='.$build,
+        'PN=Windows.AppraiserData.'.$arch.'&V='.$build,
+        'PN=Windows.EmergencyUpdate.'.$arch.'&V='.$build,
+        'PN=Windows.OOBE.'.$arch.'&V='.$build,
+        'PN=Windows.UpdateStackPackage.'.$arch.'&Name=Update Stack Package&V='.$build,
     );
 
     $callerAttrib = array(
@@ -145,8 +145,8 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         'IsSeeker=1',
     );
 
-    $products = implode(';', $products);
-    $callerAttrib = 'E:'.implode('&amp;', $callerAttrib);
+    $products = htmlentities(implode(';', $products));
+    $callerAttrib = htmlentities('E:'.implode('&', $callerAttrib));
 
     $deviceAttributes = composeDeviceAttributes(
         $flight,
