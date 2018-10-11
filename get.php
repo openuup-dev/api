@@ -170,6 +170,10 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         $updateId = preg_replace('/_rev\..*/', '', $updateId);
     }
 
+    $updateArch = (isset($info['arch'])) ? $info['arch'] : 'UNKNOWN';
+    $updateBuild = (isset($info['build'])) ? $info['build'] : 'UNKNOWN';
+    $updateName = (isset($info['title'])) ? $info['title'] : 'Unknown update: '.$updateId;
+
     $fetchTime = time();
     consoleLogger('Fetching information from the server...');
     $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev);
@@ -177,27 +181,32 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     consoleLogger('Information has been successfully fetched.');
 
     consoleLogger('Parsing information...');
-    preg_match_all('/<FileLocation>.*?<\/FileLocation>/', $out, $out);
-    if(empty($out[0])) {
+    $xmlOut = simplexml_load_string($out);
+    $xmlBody = $xmlOut->children('s', true)->Body->children();
+
+    if(!isset($xmlBody->GetExtendedUpdateInfo2Response)) {
         consoleLogger('An error has occurred');
         return array('error' => 'EMPTY_FILELIST');
     }
 
-    $updateArch = (isset($info['arch'])) ? $info['arch'] : 'UNKNOWN';
-    $updateBuild = (isset($info['build'])) ? $info['build'] : 'UNKNOWN';
-    $updateName = (isset($info['title'])) ? $info['title'] : 'Unknown update: '.$updateId;
+    $getResponse = $xmlBody->GetExtendedUpdateInfo2Response;
+    $getResult = $getResponse->GetExtendedUpdateInfo2Result;
 
+    if(!isset($getResult->FileLocations)) {
+        consoleLogger('An error has occurred');
+        return array('error' => 'EMPTY_FILELIST');
+    }
+
+    $fileLocations = $getResult->FileLocations;
     $info = $info['files'];
-    $out = preg_replace('/<FileLocation>|<\/FileLocation>/', '', $out[0]);
 
     $files = array();
-    foreach($out as $val) {
-        $sha1 = explode('<FileDigest>', $val, 2);
-        $sha1 = explode('</FileDigest>', $sha1[1], 2);
-        $sha1 = bin2hex(base64_decode($sha1[0]));
+    foreach($fileLocations->FileLocation as $val) {
+        $sha1 = bin2hex(base64_decode((string)$val->FileDigest));
+        $url = (string)$val->Url;
 
-        preg_match('/files\/.{8}-.{4}-.{4}-.{4}-.{12}/', $val, $guid);
-        $guid = preg_replace('/files\/|\?$/', '', $guid[0]);
+        preg_match('/files\/(.{8}-.{4}-.{4}-.{4}-.{12})/', $url, $guid);
+        $guid = $guid[1];
 
         if(empty($info[$sha1]['name'])) {
             $name = $guid;
@@ -214,13 +223,9 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         if(!isset($fileSizes[$name])) $fileSizes[$name] = -2;
 
         if($size > $fileSizes[$name]) {
-            $url = explode('<Url>', $val, 2);
-            $url = explode('</Url>', $url[1], 2);
-            $url = html_entity_decode($url[0]);
-
-            preg_match('/P1=.*?&/', $url, $expire);
+            preg_match('/P1=(.*?)&/', $url, $expire);
             if(isset($expire[0])) {
-                $expire = preg_replace('/P1=|&$/', '', $expire[0]);
+                $expire = $expire[1];
             }
 
             $expire = intval($expire);
