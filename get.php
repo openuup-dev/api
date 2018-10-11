@@ -189,8 +189,8 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         return array('error' => 'EMPTY_FILELIST');
     }
 
-    $getResponse = $xmlBody = $xmlBody->GetExtendedUpdateInfo2Response;
-    $getResult = $getResponse = $xmlBody->GetExtendedUpdateInfo2Result;
+    $getResponse = $xmlBody->GetExtendedUpdateInfo2Response;
+    $getResult = $xmlBody->GetExtendedUpdateInfo2Result;
 
     if(!isset($getResult->FileLocations)) {
         consoleLogger('An error has occurred');
