@@ -16,7 +16,7 @@ limitations under the License.
 */
 
 function uupApiVersion() {
-    return '1.15.10';
+    return '1.15.11';
 }
 
 require_once dirname(__FILE__).'/auths.php';
