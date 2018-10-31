@@ -105,11 +105,7 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
 
         case 'WUBFILE': break;
 
-        case 'UPDATEONLY':
-            if(!isset($info['containsCU']) || !$info['containsCU']) {
-                return array('error' => 'NOT_CUMULATIVE_UPDATE');
-            }
-            break;
+        case 'UPDATEONLY': break;
 
         default:
             if($useGeneratedPacks) {
@@ -301,6 +297,9 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
             $filesKeys = array_keys($files);
 
             $filesKeys = preg_grep('/Windows10\.0-KB/i', $filesKeys);
+            if(count($filesKeys) == 0) {
+                return array('error' => 'NOT_CUMULATIVE_UPDATE');
+            }
             break;
 
         case 'WUBFILE':
