@@ -19,7 +19,12 @@ require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
 require_once dirname(__FILE__).'/shared/packs.php';
 
-function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePack = 0, $desiredEdition = 0) {
+function uupGetFiles(
+    $updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6',
+    $usePack = 0,
+    $desiredEdition = 0,
+    $cacheRequests = 0
+) {
     uupApiPrintBrand();
 
     $info = @file_get_contents('fileinfo/'.$updateId.'.json');
@@ -160,6 +165,9 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
         }
     }
 
+    $cacheHash = hash('sha1', strtolower("api-get-$updateId"));
+    $cached = 0;
+
     $rev = 1;
     if(preg_match('/_rev\./', $updateId)) {
         $rev = preg_replace('/.*_rev\./', '', $updateId);
@@ -170,11 +178,42 @@ function uupGetFiles($updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6', $usePac
     $updateBuild = (isset($info['build'])) ? $info['build'] : 'UNKNOWN';
     $updateName = (isset($info['title'])) ? $info['title'] : 'Unknown update: '.$updateId;
 
-    $fetchTime = time();
-    consoleLogger('Fetching information from the server...');
-    $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev);
-    $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
-    consoleLogger('Information has been successfully fetched.');
+    if(file_exists('cache/'.$cacheHash.'.json.gz') && $cacheRequests == 1) {
+        $cache = @gzdecode(@file_get_contents('cache/'.$cacheHash.'.json.gz'));
+        $cache = json_decode($cache, 1);
+
+        if(!empty($cache['content']) && ($cache['expires'] > time())) {
+            consoleLogger('Using cached response...');
+            $out = $cache['content'];
+            $fetchTime = $cache['fetchTime'];
+            $cached = 1;
+        } else {
+            $cached = 0;
+        }
+
+        unset($cache);
+    }
+
+    if(!$cached) {
+        $fetchTime = time();
+        consoleLogger('Fetching information from the server...');
+        $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev);
+        $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
+        consoleLogger('Information has been successfully fetched.');
+
+        if($cacheRequests == 1) {
+            $cache = array(
+                'expires' => time()+90,
+                'content' => $out,
+                'fetchTime' => $fetchTime,
+            );
+
+            if(!file_exists('cache')) mkdir('cache');
+            @file_put_contents('cache/'.$cacheHash.'.json.gz', gzencode(json_encode($cache)."\n"));
+
+            unset($cache);
+        }
+    }
 
     consoleLogger('Parsing information...');
     $xmlOut = simplexml_load_string($out);

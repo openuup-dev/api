@@ -19,7 +19,15 @@ require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
 require_once dirname(__FILE__).'/listid.php';
 
-function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build = 'latest', $minor = '0', $sku = '48') {
+function uupFetchUpd(
+    $arch = 'amd64',
+    $ring = 'WIF',
+    $flight = 'Active',
+    $build = 'latest',
+    $minor = '0',
+    $sku = '48',
+    $cacheRequests = 0
+) {
     uupApiPrintBrand();
 
     $arch = strtolower($arch);
@@ -80,12 +88,44 @@ function uupFetchUpd($arch = 'amd64', $ring = 'WIF', $flight = 'Active', $build 
 
     $build = '10.0.'.$build.'.'.$minor;
 
-    consoleLogger('Fetching information from the server...');
-    $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build, $sku);
-    $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
+    $cacheHash = hash('sha1', strtolower("api-fetch-$arch-$ring-$flight-$build-$minor-$sku"));
+    $cached = 0;
 
-    $out = html_entity_decode($out);
-    consoleLogger('Information has been successfully fetched.');
+    if(file_exists('cache/'.$cacheHash.'.json.gz') && $cacheRequests == 1) {
+        $cache = @gzdecode(@file_get_contents('cache/'.$cacheHash.'.json.gz'));
+        $cache = json_decode($cache, 1);
+
+        if(!empty($cache['content']) && ($cache['expires'] > time())) {
+            consoleLogger('Using cached response...');
+            $out = $cache['content'];
+            $cached = 1;
+        } else {
+            $cached = 0;
+        }
+
+        unset($cache);
+    }
+
+    if(!$cached) {
+        consoleLogger('Fetching information from the server...');
+        $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build, $sku);
+        $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
+
+        $out = html_entity_decode($out);
+        consoleLogger('Information has been successfully fetched.');
+
+        if($cacheRequests == 1) {
+            $cache = array(
+                'expires' => time()+90,
+                'content' => $out,
+            );
+
+            if(!file_exists('cache')) mkdir('cache');
+            @file_put_contents('cache/'.$cacheHash.'.json.gz', gzencode(json_encode($cache)."\n"));
+
+            unset($cache);
+        }
+    }
 
     preg_match_all('/<UpdateInfo>.*?<\/UpdateInfo>/', $out, $updateInfos);
     $updateInfo = preg_grep('/<Action>Install<\/Action>/', $updateInfos[0]);
