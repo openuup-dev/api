@@ -216,7 +216,12 @@ function uupGetFiles(
     }
 
     consoleLogger('Parsing information...');
-    $xmlOut = simplexml_load_string($out);
+    $xmlOut = @simplexml_load_string($out);
+    if($xmlOut === false) {
+        unlink('cache/'.$cacheHash.'.json.gz');
+        return array('error' => 'ERROR');
+    }
+
     $xmlBody = $xmlOut->children('s', true)->Body->children();
 
     if(!isset($xmlBody->GetExtendedUpdateInfo2Response)) {
