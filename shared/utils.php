@@ -34,6 +34,23 @@ function randStr($length = 4) {
     return $randomString;
 }
 
+function genUUID() {
+    return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+        rand(0, 0xffff),
+        rand(0, 0xffff),
+
+        rand(0, 0xffff),
+
+        rand(0, 0x0fff) | 0x4000,
+
+        rand(0, 0x3fff) | 0x8000,
+
+        rand(0, 0xffff),
+        rand(0, 0xffff),
+        rand(0, 0xffff)
+    );
+}
+
 function sendWuPostRequest($url, $postData) {
     $req = curl_init($url);
 
@@ -52,7 +69,7 @@ function sendWuPostRequest($url, $postData) {
     curl_close($req);
 
     $outDecoded = html_entity_decode($out);
-    preg_match('/<NewCookie>.*?<\/NewCookie>/', $outDecoded, $cookieData);
+    preg_match('/<NewCookie>.*?<\/NewCookie>|<GetCookieResult>.*?<\/GetCookieResult>/', $outDecoded, $cookieData);
 
     if(!empty($cookieData)) {
         preg_match('/<Expiration>.*<\/Expiration>/', $cookieData[0], $expirationDate);

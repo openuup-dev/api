@@ -28,9 +28,9 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     }
 
     $attrib = array(
-        'App=WU',
+        'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=50',
+        'AttrDataVer=52',
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
         'DeviceFamily=Windows.Desktop',
@@ -39,8 +39,6 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'FlightRing='.$ring,
         'FlightingBranchName=external',
         'Free=32to64',
-        'GStatus_RS3=2',
-        'GStatus_RS4=2',
         'GStatus_RS5=2',
         'InstallDate=1438196400',
         'InstallLanguage=en-US',
@@ -59,8 +57,6 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'ProcessorManufacturer=GenuineIntel',
         'TelemetryLevel=1',
         'UpdateManagementGroup=2',
-        'UpgEx_RS3=Green',
-        'UpgEx_RS4=Green',
         'UpgEx_RS5=Green',
         'WuClientVer='.$build,
     );
@@ -96,7 +92,7 @@ function branchFromBuild($build) {
 
 // Composes POST data for gathering list of urls for download
 function composeFileGetRequest($updateId, $device, $info, $rev = 1) {
-    $uuid = randStr(8).'-'.randStr(4).'-'.randStr(4).'-'.randStr(4).'-'.randStr(12);
+    $uuid = genUUID();
 
     $createdTime = time();
     $expiresTime = $createdTime + 120;
@@ -119,7 +115,7 @@ function composeFileGetRequest($updateId, $device, $info, $rev = 1) {
 
 // Composes POST data for fetching the latest update information from Windows Update
 function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build, $sku = 48) {
-    $uuid = randStr(8).'-'.randStr(4).'-'.randStr(4).'-'.randStr(4).'-'.randStr(12);
+    $uuid = genUUID();
 
     $createdTime = time();
     $expiresTime = $createdTime + 120;
@@ -130,12 +126,15 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     $branch = branchFromBuild($build);
 
     $products = array(
-        'PN=Client.OS.rs2.'.$arch.'&Branch='.$branch.'&PrimaryOSProduct=1&V='.$build,
-        'PN=Windows.Appraiser.'.$arch.'&V='.$build,
-        'PN=Windows.AppraiserData.'.$arch.'&V='.$build,
-        'PN=Windows.EmergencyUpdate.'.$arch.'&V='.$build,
-        'PN=Windows.OOBE.'.$arch.'&V='.$build,
-        'PN=Windows.UpdateStackPackage.'.$arch.'&Name=Update Stack Package&V='.$build,
+        'PN=Client.OS.rs2.'.$arch.'&Branch='.$branch.'&PrimaryOSProduct=1&Repairable=1&V='.$build,
+        'PN=Windows.Appraiser.'.$arch.'&Repairable=1&V='.$build,
+        'PN=Windows.AppraiserData.'.$arch.'&Repairable=1&V='.$build,
+        'PN=Windows.EmergencyUpdate.'.$arch.'&Repairable=1&V='.$build,
+        'PN=Windows.OOBE.'.$arch.'&IsWindowsOOBE=1&Repairable=1&V='.$build,
+        'PN=Windows.UpdateStackPackage.'.$arch.'&Name=Update Stack Package&Repairable=1&V='.$build,
+        'PN=Hammer.'.$arch.'&Source=UpdateOrchestrator&V=0.0.0.0',
+        'PN=MSRT.'.$arch.'&Source=UpdateOrchestrator&V=0.0.0.0',
+        'PN=SedimentPack.'.$arch.'&Source=UpdateOrchestrator&V=0.0.0.0',
     );
 
     $callerAttrib = array(
@@ -157,5 +156,18 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     );
 
     return '<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><a:Action s:mustUnderstand="1">http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/SyncUpdates</a:Action><a:MessageID>urn:uuid:'.$uuid.'</a:MessageID><a:To s:mustUnderstand="1">https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx</a:To><o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><Timestamp xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><Created>'.$created.'</Created><Expires>'.$expires.'</Expires></Timestamp><wuws:WindowsUpdateTicketsToken wsu:id="ClientMSA" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wuws="http://schemas.microsoft.com/msus/2014/10/WindowsUpdateAuthorization"><TicketType Name="MSA" Version="1.0" Policy="MBI_SSL"><Device>'.$device.'</Device></TicketType></wuws:WindowsUpdateTicketsToken></o:Security></s:Header><s:Body><SyncUpdates xmlns="http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService"><cookie><Expiration>2046-02-18T21:29:10Z</Expiration><EncryptedData>'.$encData.'</EncryptedData></cookie><parameters><ExpressQuery>false</ExpressQuery><InstalledNonLeafUpdateIDs></InstalledNonLeafUpdateIDs><OtherCachedUpdateIDs></OtherCachedUpdateIDs><SkipSoftwareSync>false</SkipSoftwareSync><NeedTwoGroupOutOfScopeUpdates>true</NeedTwoGroupOutOfScopeUpdates><AlsoPerformRegularSync>true</AlsoPerformRegularSync><ComputerSpec/><ExtendedUpdateInfoParameters><XmlUpdateFragmentTypes><XmlUpdateFragmentType>Extended</XmlUpdateFragmentType><XmlUpdateFragmentType>LocalizedProperties</XmlUpdateFragmentType><XmlUpdateFragmentType>Eula</XmlUpdateFragmentType></XmlUpdateFragmentTypes><Locales><string>en-US</string></Locales></ExtendedUpdateInfoParameters><ClientPreferredLanguages></ClientPreferredLanguages><ProductsParameters><SyncCurrentVersionOnly>false</SyncCurrentVersionOnly><DeviceAttributes>'.$deviceAttributes.'</DeviceAttributes><CallerAttributes>'.$callerAttrib.'</CallerAttributes><Products>'.$products.'</Products></ProductsParameters></parameters></SyncUpdates></s:Body></s:Envelope>';
+}
+
+// Composes POST data for Get Cookie request
+function composeGetCookieRequest($device) {
+    $uuid = genUUID();
+
+    $createdTime = time();
+    $expiresTime = $createdTime + 120;
+
+    $created = gmdate(DATE_W3C, $createdTime);
+    $expires = gmdate(DATE_W3C, $expiresTime);
+
+    return '<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><a:Action s:mustUnderstand="1">http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/GetCookie</a:Action><a:MessageID>urn:uuid:'.$uuid.'</a:MessageID><a:To s:mustUnderstand="1">https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx</a:To><o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><Timestamp xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><Created>'.$created.'</Created><Expires>'.$expires.'</Expires></Timestamp><wuws:WindowsUpdateTicketsToken wsu:id="ClientMSA" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wuws="http://schemas.microsoft.com/msus/2014/10/WindowsUpdateAuthorization"><TicketType Name="MSA" Version="1.0" Policy="MBI_SSL"><Device>'.$device.'</Device></TicketType></wuws:WindowsUpdateTicketsToken></o:Security></s:Header><s:Body><GetCookie xmlns="http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService"><oldCookie><Expiration>'.$created.'</Expiration></oldCookie><lastChange>'.$created.'</lastChange><currentTime>'.$created.'</currentTime><protocolVersion>2.0</protocolVersion></GetCookie></s:Body></s:Envelope>';
 }
 ?>

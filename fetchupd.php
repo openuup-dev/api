@@ -64,7 +64,7 @@ function uupFetchUpd(
         return array('error' => 'UNKNOWN_ARCH');
     }
 
-    if(!($ring == 'WIF' || $ring == 'WIS' || $ring == 'RP' || $ring == 'RETAIL')) {
+    if(!($ring == 'WIF' || $ring == 'WIS' || $ring == 'RP' || $ring == 'RETAIL' || $ring == 'MSIT')) {
         return array('error' => 'UNKNOWN_RING');
     }
 
