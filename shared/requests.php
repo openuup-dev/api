@@ -30,9 +30,10 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=52',
+        'AttrDataVer=54',
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
+        'DataVer_RS5='.PHP_INT_MAX,
         'DeviceFamily=Windows.Desktop',
         'FirmwareVersion=6.00',
         'FlightContent='.$flight,
@@ -48,7 +49,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'IsRetailOS='.$isRetail,
         'OEMModel=Largehard Device Model 42069',
         'OEMModelBaseBoard=Largehard Base Board',
-        'OEMName_Uncleaned=Largehard',
+        'OEMName_Uncleaned=Largehard Corporation',
         'OSArchitecture='.$arch,
         'OSSkuId='.$sku,
         'OSUILocale=en-US',
@@ -58,6 +59,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'TelemetryLevel=1',
         'UpdateManagementGroup=2',
         'UpgEx_RS5=Green',
+        'Version_RS5='.PHP_INT_MAX,
         'WuClientVer='.$build,
     );
 
