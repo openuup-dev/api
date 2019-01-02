@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2018 UUP dump API authors
+Copyright 2019 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ function uupGetPacks($build = 15063) {
         'tr-tr' => 'Turkish',
         'uk-ua' => 'Ukrainian',
         'zh-cn' => 'Chinese (Simplified)',
+        'zh-hk' => 'Chinese (Hong Kong)',
         'zh-tw' => 'Chinese (Traditional)',
     );
 
