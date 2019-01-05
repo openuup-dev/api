@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2018 UUP dump API authors
+Copyright 2019 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@ limitations under the License.
 */
 
 function uupApiVersion() {
-    return '1.17.3';
+    return '1.18.0';
 }
 
 require_once dirname(__FILE__).'/auths.php';

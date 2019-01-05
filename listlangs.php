@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2017 UUP dump API authors
+Copyright 2019 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,40 +21,37 @@ require_once dirname(__FILE__).'/updateinfo.php';
 
 function uupListLangs($updateId = 0) {
     if($updateId) {
-        $info = uupUpdateInfo($updateId, 'build');
+        $info = uupUpdateInfo($updateId);
     }
 
-    if(isset($info['info'])) {
-        $build = explode('.', $info['info']);
+    if(isset($info['info'])) $info = $info['info'];
+
+    if(isset($info['build'])) {
+        $build = explode('.', $info['build']);
         $build = $build[0];
     } else {
         $build = 9841;
     }
 
-    $packs = uupGetPacks($build);
-    $packsForLangs = $packs['packsForLangs'];
-    $fancyLangNames = $packs['fancyLangNames'];
-
-    if(file_exists('packs/'.$updateId.'.json.gz')) {
-        $genPack = @gzdecode(@file_get_contents('packs/'.$updateId.'.json.gz'));
-
-        if(!empty($genPack)) {
-            $genPack = json_decode($genPack, 1);
-            $packsForLangs = $genPack;
-        }
+    if(!isset($info['arch'])) {
+        $arch = null;
     }
+
+    $genPack = uupGetGenPacks($build, $info['arch'], $updateId);
+    $fancyTexts = uupGetInfoTexts();
+    $fancyLangNames = $fancyTexts['fancyLangNames'];
 
     $langList = array();
     $langListFancy = array();
-    foreach($packsForLangs as $key => $val) {
-        if(isset($fancyLangNames[$key])) {
-            $fancyName = $fancyLangNames[$key];
+    foreach(array_keys($genPack) as $val) {
+        if(isset($fancyLangNames[$val])) {
+            $fancyName = $fancyLangNames[$val];
         } else {
-            $fancyName = $key;
+            $fancyName = $val;
         }
 
-        $langList[] = $key;
-        $langListFancy[$key] = $fancyName;
+        $langList[] = $val;
+        $langListFancy[$val] = $fancyName;
     }
 
     return array(
@@ -63,4 +60,3 @@ function uupListLangs($updateId = 0) {
         'langFancyNames' => $langListFancy,
     );
 }
-?>

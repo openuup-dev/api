@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2018 UUP dump API authors
+Copyright 2019 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -52,49 +52,22 @@ function uupGetFiles(
         $info['sku'] = 48;
     }
 
-    $packs = uupGetPacks($build);
-    $packsForLangs = $packs['packsForLangs'];
-    $editionPacks = $packs['editionPacks'];
-    $checkEditions = $packs['allEditions'];
-    $skipNeutral = $packs['skipNeutral'];
-    $skipLangPack = $packs['skipLangPack'];
-    $packs = $packs['packs'];
-
-    $noLangPack = 0;
-    $noNeutral = 0;
-
-    $useGeneratedPacks = 0;
-
-    if(file_exists('packs/'.$updateId.'.json.gz') && $usePack) {
-        $genPack = @gzdecode(@file_get_contents('packs/'.$updateId.'.json.gz'));
-
-        if(!empty($genPack)) {
-            $genPack = json_decode($genPack, 1);
-
-            if(!isset($genPack[$usePack])) {
-                return array('error' => 'UNSUPPORTED_LANG');
-            }
-
-            $packsForLangs = array();
-            $packsForLangs[$usePack] = array(0);
-
-            $useGeneratedPacks = 1;
-        }
-    }
-
     if($usePack) {
-        $usePack = strtolower($usePack);
-        if(!isset($packsForLangs[$usePack])) {
+        $genPack = uupGetGenPacks($build, $info['arch'], $updateId);
+        if(empty($genPack)) return array('error' => 'UNSUPPORTED_COMBINATION');
+
+        if(!isset($genPack[$usePack])) {
             return array('error' => 'UNSUPPORTED_LANG');
         }
     }
 
     $desiredEdition = strtoupper($desiredEdition);
+    $fileListSource = $desiredEdition;
 
     switch($desiredEdition) {
         case '0':
-            if($useGeneratedPacks) {
-                $desiredEdition = 'GENERATEDPACKS';
+            if($usePack) {
+                $fileListSource = 'GENERATEDPACKS';
 
                 $filesList = array();
                 foreach($genPack[$usePack] as $val) {
@@ -113,56 +86,13 @@ function uupGetFiles(
         case 'UPDATEONLY': break;
 
         default:
-            if($useGeneratedPacks) {
-                if(!isset($genPack[$usePack][$desiredEdition])) {
-                    return array('error' => 'UNSUPPORTED_COMBINATION');
-                }
-
-                $filesList = $genPack[$usePack][$desiredEdition];
-                $desiredEdition = 'GENERATEDPACKS';
-                break;
-            }
-
-            if(!$usePack) {
-                return array('error' => 'UNSPECIFIED_LANG');
-            }
-
-            if(!isset($editionPacks[$desiredEdition])) {
-                return array('error' => 'UNSUPPORTED_EDITION');
-            }
-
-            $supported = 0;
-            foreach($packsForLangs[$usePack] as $val) {
-                if($editionPacks[$desiredEdition] == $val) $supported = 1;
-            }
-
-            if(!$supported) {
+            if(!isset($genPack[$usePack][$desiredEdition])) {
                 return array('error' => 'UNSUPPORTED_COMBINATION');
             }
-            unset($supported);
 
-            if(isset($skipLangPack[$desiredEdition])) {
-                if($skipLangPack[$desiredEdition]) {
-                    $noLangPack = 1;
-                }
-            }
-
-            if(isset($skipNeutral[$desiredEdition])) {
-                if($skipNeutral[$desiredEdition]) {
-                    $noNeutral = 1;
-                }
-            }
-
-            $checkEditions = array($desiredEdition);
+            $filesList = $genPack[$usePack][$desiredEdition];
+            $fileListSource = 'GENERATEDPACKS';
             break;
-    }
-
-    if($noNeutral) {
-        foreach($packsForLangs[$usePack] as $num) {
-            if(isset($packs[$num]['editionNeutral'])) {
-                unset($packs[$num]['editionNeutral']);
-            }
-        }
     }
 
     $cacheHash = hash('sha1', strtolower("api-get-$updateId"));
@@ -328,7 +258,7 @@ function uupGetFiles(
 
     $filesKeys = array_keys($files);
 
-    switch($desiredEdition) {
+    switch($fileListSource) {
         case 'UPDATEONLY':
             $skipPackBuild = 1;
             $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
@@ -350,73 +280,9 @@ function uupGetFiles(
             $skipPackBuild = 1;
             $filesKeys = preg_grep('/WindowsUpdateBox.exe/i', $filesKeys);
             break;
-
-        case 'GENERATEDPACKS':
-            $skipPackBuild = 1;
-            break;
-
-        default:
-            $skipPackBuild = 0;
-            break;
     }
 
-    if($usePack && !$skipPackBuild) {
-        $esd = array_keys($files);
-        $esd = preg_grep('/\.esd$/i', $esd);
-
-        foreach($esd as $key => $val) {
-            $esd[$key] = strtoupper($val);
-        }
-
-        foreach($checkEditions as $val) {
-            $testEsd[] = $val.'_'.strtoupper($usePack).'.ESD';
-        }
-
-        $foundMetadata = array_intersect($testEsd, $esd);
-        consoleLogger('Found '.count($foundMetadata).' metadata ESD file(s).');
-
-        if(empty($foundMetadata)) {
-            return array('error' => 'NO_METADATA_ESD');
-        }
-
-        $removeFiles = array();
-        $removeFiles[0] = preg_grep('/RetailDemo-OfflineContent/i', $filesKeys);
-        $removeFiles[1] = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
-
-        foreach($removeFiles as $val) {
-            foreach($val as $temp) {
-                if(isset($files[$temp])) unset($files[$temp]);
-            }
-        }
-        unset($removeFiles, $temp, $val);
-
-        $filesKeys = array_keys($files);
-        $filesTemp = array();
-
-        if(!$noLangPack) {
-            $temp = preg_grep('/.*'.$usePack.'-Package.*/i', $filesKeys);
-            $filesTemp = array_merge($filesTemp, $temp);
-
-            $temp = preg_grep('/.*'.$usePack.'_lp..../i', $filesKeys);
-            $filesTemp = array_merge($filesTemp, $temp);
-        }
-
-        foreach($packsForLangs[$usePack] as $num) {
-            foreach($packs[$num] as $key => $val) {
-                if($key == 'editionNeutral'
-                || $key == $desiredEdition
-                || !$desiredEdition) {
-                    $temp = packsByEdition($key, $val, $usePack, $filesKeys);
-                    $filesTemp = array_merge($filesTemp, $temp);
-                }
-            }
-        }
-
-        $filesKeys = array_unique($filesTemp);
-        unset($filesTemp, $temp, $val, $num);
-    }
-
-    if($desiredEdition == 'GENERATEDPACKS') {
+    if($fileListSource == 'GENERATEDPACKS') {
         $temp = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys, PREG_GREP_INVERT);
         $temp = preg_grep('/Windows10\.0-KB/i', $temp);
         $filesList = array_merge($filesList, $temp);
@@ -428,7 +294,9 @@ function uupGetFiles(
             $name = preg_replace('/~/', '-', $name);
             $name = strtolower($name);
 
-            $newFiles[$name] = $files[$name];
+            if(isset($files[$name])) {
+                $newFiles[$name] = $files[$name];
+            }
         }
 
         $files = $newFiles;
@@ -456,20 +324,3 @@ function uupGetFiles(
         'files' => $files,
     );
 }
-
-function packsByEdition($edition, $pack, $lang, $filesKeys) {
-    $filesTemp = array();
-
-    if($edition != 'editionNeutral') {
-        $temp = preg_grep('/'.$edition.'_'.$lang.'\.esd/i', $filesKeys);
-        $filesTemp = array_merge($filesTemp, $temp);
-    }
-
-    foreach($pack as $val) {
-        $temp = preg_grep('/'.$val.'.*/i', $filesKeys);
-        $filesTemp = array_merge($filesTemp, $temp);
-    }
-
-    return $filesTemp;
-}
-?>

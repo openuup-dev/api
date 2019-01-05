@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2017 UUP dump API authors
+Copyright 2019 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,61 +21,44 @@ require_once dirname(__FILE__).'/updateinfo.php';
 
 function uupListEditions($lang = 'en-us', $updateId = 0) {
     if($updateId) {
-        $info = uupUpdateInfo($updateId, 'build');
+        $info = uupUpdateInfo($updateId);
     }
 
-    if(isset($info['info'])) {
-        $build = explode('.', $info['info']);
+    if(isset($info['info'])) $info = $info['info'];
+
+    if(isset($info['build'])) {
+        $build = explode('.', $info['build']);
         $build = $build[0];
     } else {
         $build = 9841;
     }
 
-    $packs = uupGetPacks($build);
-    $packsForLangs = $packs['packsForLangs'];
-    $fancyEditionNames = $packs['fancyEditionNames'];
-    $packs = $packs['packs'];
-
-    if(file_exists('packs/'.$updateId.'.json.gz')) {
-        $genPack = @gzdecode(@file_get_contents('packs/'.$updateId.'.json.gz'));
-
-        if(!empty($genPack)) {
-            $genPack = json_decode($genPack, 1);
-
-            if(!isset($genPack[$lang])) {
-                return array('error' => 'UNSUPPORTED_LANG');
-            }
-
-            $packsForLangs = array();
-            $packsForLangs[$lang] = array(0);
-
-            $packs = array();
-            $packs[0] = $genPack[$lang];
-        }
+    if(!isset($info['arch'])) {
+        $arch = null;
     }
+
+    $genPack = uupGetGenPacks($build, $info['arch'], $updateId);
+    $fancyTexts = uupGetInfoTexts();
+    $fancyEditionNames = $fancyTexts['fancyEditionNames'];
 
     if($lang) {
         $lang = strtolower($lang);
-        if(!isset($packsForLangs[$lang])) {
+        if(!isset($genPack[$lang])) {
             return array('error' => 'UNSUPPORTED_LANG');
         }
     }
 
     $editionList = array();
     $editionListFancy = array();
-    foreach($packsForLangs[$lang] as $val) {
-        foreach(array_keys($packs[$val]) as $edition) {
-            if($edition == 'editionNeutral') continue;
-
-            if(isset($fancyEditionNames[$edition])) {
-                $fancyName = $fancyEditionNames[$edition];
-            } else {
-                $fancyName = $edition;
-            }
-
-            $editionList[] = $edition;
-            $editionListFancy[$edition] = $fancyName;
+    foreach(array_keys($genPack[$lang]) as $edition) {
+        if(isset($fancyEditionNames[$edition])) {
+            $fancyName = $fancyEditionNames[$edition];
+        } else {
+            $fancyName = $edition;
         }
+
+        $editionList[] = $edition;
+        $editionListFancy[$edition] = $fancyName;
     }
 
     return array(
@@ -84,4 +67,3 @@ function uupListEditions($lang = 'en-us', $updateId = 0) {
         'editionFancyNames' => $editionListFancy,
     );
 }
-?>

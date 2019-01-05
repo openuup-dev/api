@@ -15,7 +15,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-function uupGetPacks($build = 15063) {
+require_once dirname(__FILE__).'/../listid.php';
+
+function uupGetInfoTexts() {
     $fancyLangNames = array(
         'ar-sa' => 'Arabic (Saudi Arabia)',
         'bg-bg' => 'Bulgarian',
@@ -61,7 +63,7 @@ function uupGetPacks($build = 15063) {
     $fancyEditionNames = array(
         'CLOUD' => 'Windows 10 S',
         'CLOUDN' => 'Windows 10 S N',
-        'CLOUDE' => 'Windows 10 CloudE',
+        'CLOUDE' => 'Windows 10 Lean',
         'CORE' => 'Windows 10 Home',
         'CORECOUNTRYSPECIFIC' => 'Windows 10 Home China',
         'COREN' => 'Windows 10 Home N',
@@ -165,33 +167,171 @@ function uupGetPacks($build = 15063) {
         'STARTERN',
     );
 
-    if($build < 17063) {
-        require dirname(__FILE__).'/packs/legacy.php';
-    } elseif ($build >= 17661) {
-        require dirname(__FILE__).'/packs/17661.php';
-    } elseif ($build >= 17655) {
-        require dirname(__FILE__).'/packs/17655.php';
-    } elseif ($build >= 17650) {
-        require dirname(__FILE__).'/packs/17650.php';
-    } elseif ($build >= 17634) {
-        require dirname(__FILE__).'/packs/17634.php';
-    } elseif ($build >= 17623) {
-        require dirname(__FILE__).'/packs/17623.php';
-    } elseif ($build >= 17093) {
-        require dirname(__FILE__).'/packs/17093.php';
-    } elseif ($build >= 17063) {
-        require dirname(__FILE__).'/packs/17063.php';
-    }
-
     return array(
-        'packs' => $packs,
-        'packsForLangs' => $packsForLangs,
-        'editionPacks' => $editionPacks,
         'fancyEditionNames' => $fancyEditionNames,
         'fancyLangNames' => $fancyLangNames,
         'allEditions' => $allEditions,
-        'skipNeutral' => $skipNeutral,
-        'skipLangPack' => $skipLangPack,
     );
 }
-?>
+
+function uupGetGenPacks($build = 15063, $arch = null, $updateId = null) {
+    $internalPacks = dirname(__FILE__).'/packs';
+
+    if(!file_exists($internalPacks.'/metadata.json')) {
+        if(!uupCreateInternalPacksMetadata($internalPacks)) {
+            return array();
+        }
+    }
+
+    if(!empty($updateId)) {
+        if(file_exists('packs/'.$updateId.'.json.gz')) {
+            $genPack = @gzdecode(@file_get_contents('packs/'.$updateId.'.json.gz'));
+            if(empty($genPack)) return array();
+
+            $genPack = json_decode($genPack, 1);
+            return $genPack;
+        }
+    }
+
+    $metadata = @file_get_contents($internalPacks.'/metadata.json');
+    if(empty($metadata)) {
+        return array();
+    } else {
+        $metadata = json_decode($metadata, 1);
+    }
+
+    $hashDetermined = 0;
+    $useAllHashesForBuild = 0;
+
+    if($updateId) {
+        if(isset($metadata['knownIds'][$updateId])) {
+            $hash = $metadata['knownIds'][$updateId];
+            $hashDetermined = 1;
+        }
+    }
+
+    if(!$hashDetermined) {
+        foreach($metadata['knownBuilds'] as $buildNum => $val) {
+            if($build < $buildNum) continue;
+            $useBuild = $buildNum;
+            break;
+        }
+
+        if(!isset($useBuild)) {
+            return array();
+        }
+
+        if(!$arch && !isset($metadata['knownBuilds'][$useBuild][$arch])) {
+            $genPack = array();
+            foreach($metadata['knownBuilds'][$useBuild] as $hash) {
+                $temp = @gzdecode(@file_get_contents($internalPacks.'/'.$hash.'.json.gz'));
+                if(!empty($temp)) {
+                    $temp = json_decode($temp, 1);
+                    $genPack = array_merge_recursive($genPack, $temp);
+                    unset($temp);
+                }
+            }
+        } else {
+            $hash = $metadata['knownBuilds'][$useBuild][$arch];
+        }
+    }
+
+    if(!isset($genPack)) {
+        $genPack = @gzdecode(@file_get_contents($internalPacks.'/'.$hash.'.json.gz'));
+        if(!empty($genPack)) {
+            $genPack = json_decode($genPack, 1);
+        } else {
+            $genPack = array();
+        }
+    }
+
+    return $genPack;
+}
+
+//Function to regenerate internal packs. Should not be used when not needed.
+function uupCreateInternalPacksMetadata($internalPacks) {
+    $metadataCreationAllowed = 0;
+    if(!$metadataCreationAllowed) return false;
+
+    $builds = uupListIds();
+    if(isset($ids['error'])) {
+        return false;
+    }
+
+    $builds = $builds['builds'];
+
+    if(!file_exists('packs')) return false;
+
+    if(!file_exists($internalPacks)) {
+        if(!mkdir($internalPacks)) {
+            return false;
+        }
+    } else {
+        rmdir($internalPacks);
+        mkdir($internalPacks);
+    }
+
+    $files = scandir('packs');
+    $files = preg_grep('/\.json.gz$/', $files);
+
+    $packs = array();
+    foreach($builds as $build) {
+        $uuid = $build['uuid'];
+        $file = $uuid.'.json.gz';
+
+        if(!file_exists('packs/'.$file)) continue;
+
+        $genPack = @gzdecode(@file_get_contents('packs/'.$file));
+        $hash = hash('sha1', $genPack);
+
+        if(!file_exists($internalPacks.'/'.$hash.'.json.gz')) {
+            if(!copy('packs/'.$file, $internalPacks.'/'.$hash.'.json.gz')) {
+                return false;
+            }
+        }
+
+        $packs['knownIds'][$uuid] = $hash;
+
+        $buildNum = explode('.', $build['build']);
+        $buildNum = $buildNum[0];
+
+        $packs['knownBuilds'][$buildNum][$build['arch']] = $hash;
+    }
+
+    file_put_contents($internalPacks.'/metadata.json', json_encode($packs)."\n");
+    return true;
+}
+
+//Emulation of legacy packs. Do not use in new scripts due to extremely slow process.
+function uupGetPacks($build = 15063) {
+    $returnArray = uupGetInfoTexts();
+    $genPack = uupGetGenPacks($build);
+
+    foreach($genPack as $lang => $editions) {
+        $packsForLangs[$lang] = array_keys($editions);
+        $packsForLangs[$lang][] = $lang;
+
+        foreach(array_keys($editions) as $edition) {
+            foreach($editions[$edition] as $name) {
+                $newName = preg_replace('/^cabs_|^metadataesd_|~31bf3856ad364e35/i', '', $name);
+                $newName = preg_replace('/~~\.|~\./', '.', $newName);
+                $newName = preg_replace('/~/', '-', $newName);
+                $newName = strtolower($newName);
+                $packs[$lang][$edition][] = $newName;
+            }
+
+            $editionPacks[$edition] = $edition;
+            $packs[$edition][$edition] = array();
+            $skipNeutral[$edition] = 1;
+            $skipLangPack[$edition] = 1;
+        }
+    }
+
+    $returnArray['packs'] = $packs;
+    $returnArray['packsForLangs'] = $packsForLangs;
+    $returnArray['editionPacks'] = $editionPacks;
+    $returnArray['skipNeutral'] = $skipNeutral;
+    $returnArray['skipLangPack'] = $skipLangPack;
+
+    return $returnArray;
+}
