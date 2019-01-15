@@ -19,11 +19,21 @@ require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
 require_once dirname(__FILE__).'/shared/packs.php';
 
+/*
+$updateId       = Update Identifier
+$usePack        = Desired language
+$desiredEdition = Desired edition
+
+$requestType    = 0 = uncached request,;
+                  1 = use cache if available;
+                  2 = offline information retrieval
+*/
+
 function uupGetFiles(
     $updateId = 'c2a1d787-647b-486d-b264-f90f3782cdc6',
     $usePack = 0,
     $desiredEdition = 0,
-    $cacheRequests = 0
+    $requestType = 0
 ) {
     uupApiPrintBrand();
 
@@ -95,9 +105,6 @@ function uupGetFiles(
             break;
     }
 
-    $cacheHash = hash('sha1', strtolower("api-get-$updateId"));
-    $cached = 0;
-
     $rev = 1;
     if(preg_match('/_rev\./', $updateId)) {
         $rev = preg_replace('/.*_rev\./', '', $updateId);
@@ -107,6 +114,115 @@ function uupGetFiles(
     $updateArch = (isset($info['arch'])) ? $info['arch'] : 'UNKNOWN';
     $updateBuild = (isset($info['build'])) ? $info['build'] : 'UNKNOWN';
     $updateName = (isset($info['title'])) ? $info['title'] : 'Unknown update: '.$updateId;
+
+    if($requestType < 2) {
+        $files = uupGetOnlineFiles($updateId, $rev, $info, $requestType);
+    } else {
+        $files = uupGetOfflineFiles($info);
+    }
+
+    $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($files));
+    foreach($baseless as $val) {
+        if(isset($files[$val])) unset($files[$val]);
+    }
+
+    $psf = array_keys($files);
+    $psf = preg_grep('/\.psf$/i', $psf);
+
+    $removeFiles = array();
+    foreach($psf as $val) {
+        $name = preg_replace('/\.psf$/i', '', $val);
+        $removeFiles[] = $name;
+        unset($files[$val]);
+    }
+    unset($index, $name, $psf);
+
+    $temp = preg_grep('/'.$updateArch.'_.*|arm64.arm_.*/i', $removeFiles);
+    foreach($temp as $key => $val) {
+        if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+        unset($removeFiles[$key]);
+    }
+    unset($temp);
+
+    foreach($removeFiles as $val) {
+        if(isset($files[$val.'.esd'])) {
+            if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+        }
+    }
+    unset($removeFiles);
+
+    $filesKeys = array_keys($files);
+
+    switch($fileListSource) {
+        case 'UPDATEONLY':
+            $skipPackBuild = 1;
+            $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
+
+            foreach($removeFiles as $val) {
+                if(isset($files[$val])) unset($files[$val]);
+            }
+
+            unset($removeFiles, $temp);
+            $filesKeys = array_keys($files);
+
+            $filesKeys = preg_grep('/Windows10\.0-KB/i', $filesKeys);
+            if(count($filesKeys) == 0) {
+                return array('error' => 'NOT_CUMULATIVE_UPDATE');
+            }
+            break;
+
+        case 'WUBFILE':
+            $skipPackBuild = 1;
+            $filesKeys = preg_grep('/WindowsUpdateBox.exe/i', $filesKeys);
+            break;
+    }
+
+    if($fileListSource == 'GENERATEDPACKS') {
+        $temp = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys, PREG_GREP_INVERT);
+        $temp = preg_grep('/Windows10\.0-KB/i', $temp);
+        $filesList = array_merge($filesList, $temp);
+
+        $newFiles = array();
+        foreach($filesList as $val) {
+            $name = preg_replace('/~31bf3856ad364e35/', '', $val);
+            $name = preg_replace('/~~\.|~\./', '.', $name);
+            $name = preg_replace('/~/', '-', $name);
+            $name = strtolower($name);
+
+            if(isset($files[$name])) {
+                $newFiles[$name] = $files[$name];
+            }
+        }
+
+        $files = $newFiles;
+        $filesKeys = array_keys($files);
+    }
+
+    if(empty($filesKeys)) {
+        return array('error' => 'NO_FILES');
+    }
+
+    foreach($filesKeys as $val) {
+       $filesNew[$val] = $files[$val];
+    }
+
+    $files = $filesNew;
+    ksort($files);
+
+    consoleLogger('Successfully parsed the information.');
+
+    return array(
+        'apiVersion' => uupApiVersion(),
+        'updateName' => $updateName,
+        'arch' => $updateArch,
+        'build' => $updateBuild,
+        'files' => $files,
+    );
+}
+
+function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
+    $cacheHash = hash('sha1', strtolower("api-get-${updateId}_rev.$rev"));
+    $cached = 0;
 
     if(file_exists('cache/'.$cacheHash.'.json.gz') && $cacheRequests == 1) {
         $cache = @gzdecode(@file_get_contents('cache/'.$cacheHash.'.json.gz'));
@@ -224,103 +340,37 @@ function uupGetFiles(
             $files[$newName] = $temp;
         }
     }
-    unset($temp, $newName);
 
-    $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($files));
-    foreach($baseless as $val) {
-        if(isset($files[$val])) unset($files[$val]);
-    }
+    return $files;
+}
 
-    $psf = array_keys($files);
-    $psf = preg_grep('/\.psf$/i', $psf);
+function uupGetOfflineFiles($info) {
+    if(empty($info['files'])) return array();
 
-    $removeFiles = array();
-    foreach($psf as $val) {
-        $name = preg_replace('/\.psf$/i', '', $val);
-        $removeFiles[] = $name;
-        unset($files[$val]);
-    }
-    unset($index, $name, $psf);
+    consoleLogger('Parsing information...');
+    foreach($info['files'] as $sha1 => $val) {
+        $name = $val['name'];
+        $size = $val['size'];
+        if(!isset($fileSizes[$name])) $fileSizes[$name] = 0;
 
-    $temp = preg_grep('/'.$updateArch.'_.*|arm64.arm_.*/i', $removeFiles);
-    foreach($temp as $key => $val) {
-        if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
-        unset($removeFiles[$key]);
-    }
-    unset($temp);
+        if($size > $fileSizes[$name]) {
+            $fileSizes[$name] = $size;
 
-    foreach($removeFiles as $val) {
-        if(isset($files[$val.'.esd'])) {
-            if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+            $temp = array();
+            $temp['sha1'] = $sha1;
+            $temp['size'] = $size;
+            $temp['url'] = null;
+            $temp['uuid'] = null;
+            $temp['expire'] = 0;
+
+            $newName = preg_replace('/^cabs_|^metadataesd_|~31bf3856ad364e35/i', '', $name);
+            $newName = preg_replace('/~~\.|~\./', '.', $newName);
+            $newName = preg_replace('/~/', '-', $newName);
+            $newName = strtolower($newName);
+
+            $files[$newName] = $temp;
         }
     }
-    unset($removeFiles);
 
-    $filesKeys = array_keys($files);
-
-    switch($fileListSource) {
-        case 'UPDATEONLY':
-            $skipPackBuild = 1;
-            $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
-
-            foreach($removeFiles as $val) {
-                if(isset($files[$val])) unset($files[$val]);
-            }
-
-            unset($removeFiles, $temp);
-            $filesKeys = array_keys($files);
-
-            $filesKeys = preg_grep('/Windows10\.0-KB/i', $filesKeys);
-            if(count($filesKeys) == 0) {
-                return array('error' => 'NOT_CUMULATIVE_UPDATE');
-            }
-            break;
-
-        case 'WUBFILE':
-            $skipPackBuild = 1;
-            $filesKeys = preg_grep('/WindowsUpdateBox.exe/i', $filesKeys);
-            break;
-    }
-
-    if($fileListSource == 'GENERATEDPACKS') {
-        $temp = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys, PREG_GREP_INVERT);
-        $temp = preg_grep('/Windows10\.0-KB/i', $temp);
-        $filesList = array_merge($filesList, $temp);
-
-        $newFiles = array();
-        foreach($filesList as $val) {
-            $name = preg_replace('/~31bf3856ad364e35/', '', $val);
-            $name = preg_replace('/~~\.|~\./', '.', $name);
-            $name = preg_replace('/~/', '-', $name);
-            $name = strtolower($name);
-
-            if(isset($files[$name])) {
-                $newFiles[$name] = $files[$name];
-            }
-        }
-
-        $files = $newFiles;
-        $filesKeys = array_keys($files);
-    }
-
-    if(empty($filesKeys)) {
-        return array('error' => 'NO_FILES');
-    }
-
-    foreach($filesKeys as $val) {
-       $filesNew[$val] = $files[$val];
-    }
-
-    $files = $filesNew;
-    ksort($files);
-
-    consoleLogger('Successfully parsed the information.');
-
-    return array(
-        'apiVersion' => uupApiVersion(),
-        'updateName' => $updateName,
-        'arch' => $updateArch,
-        'build' => $updateBuild,
-        'files' => $files,
-    );
+    return $files;
 }
