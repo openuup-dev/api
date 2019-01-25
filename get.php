@@ -121,6 +121,10 @@ function uupGetFiles(
         $files = uupGetOfflineFiles($info);
     }
 
+    if(isset($files['error'])) {
+        return $files;
+    }
+
     $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($files));
     foreach($baseless as $val) {
         if(isset($files[$val])) unset($files[$val]);

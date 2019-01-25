@@ -76,11 +76,11 @@ function uupFetchUpd(
         return array('error' => 'UNKNOWN_COMBINATION');
     }
 
-    if($build < 15063 || $build > 65536) {
+    if($build < 9841 || $build > PHP_INT_MAX-1) {
         return array('error' => 'ILLEGAL_BUILD');
     }
 
-    if($minor < 0 || $minor > 65536) {
+    if($minor < 0 || $minor > PHP_INT_MAX-1) {
         return array('error' => 'ILLEGAL_MINOR');
     }
 
