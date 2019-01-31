@@ -60,7 +60,7 @@ function uupFetchUpd(
     $build = intval($build[0]);
     $sku = intval($sku);
 
-    if(!($arch == 'amd64' || $arch == 'x86' || $arch == 'arm64')) {
+    if(!($arch == 'amd64' || $arch == 'x86' || $arch == 'arm64' || $arch == 'arm')) {
         return array('error' => 'UNKNOWN_ARCH');
     }
 
@@ -204,9 +204,9 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     }
 
     $isCumulativeUpdate = 0;
-    if(preg_match('/Cumulative Update/', $updateTitle)) {
+    if(preg_match('/\d{4}-\d{2}.+Update/', $updateTitle)) {
         $isCumulativeUpdate = 1;
-        $updateTitle = preg_replace('/.*Cumulative Update/i', 'Cumulative Update', $updateTitle);
+        $updateTitle = preg_replace('/\d{4}-\d{2} /i', '', $updateTitle);
         $updateTitle = preg_replace('/ for .{3,5}-based systems| \(KB.*?\)/i', '', $updateTitle);
 
         if(!preg_match("/$foundBuild/", $updateTitle)) {
