@@ -188,10 +188,7 @@ function uupGetFiles(
 
         $newFiles = array();
         foreach($filesList as $val) {
-            $name = preg_replace('/~31bf3856ad364e35/', '', $val);
-            $name = preg_replace('/~~\.|~\./', '.', $name);
-            $name = preg_replace('/~/', '-', $name);
-            $name = strtolower($name);
+            $name = uupCleanName($val);
 
             if(isset($files[$name])) {
                 $newFiles[$name] = $files[$name];
@@ -336,11 +333,8 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
             $temp['uuid'] = $guid;
             $temp['expire'] = $expire;
 
-            $newName = preg_replace('/^cabs_|^metadataesd_|~31bf3856ad364e35/i', '', $name);
-            $newName = preg_replace('/~~\.|~\./', '.', $newName);
-            $newName = preg_replace('/~/', '-', $newName);
-            $newName = strtolower($newName);
 
+            $newName = uupCleanName($name);
             $files[$newName] = $temp;
         }
     }
@@ -367,14 +361,24 @@ function uupGetOfflineFiles($info) {
             $temp['uuid'] = null;
             $temp['expire'] = 0;
 
-            $newName = preg_replace('/^cabs_|^metadataesd_|~31bf3856ad364e35/i', '', $name);
-            $newName = preg_replace('/~~\.|~\./', '.', $newName);
-            $newName = preg_replace('/~/', '-', $newName);
-            $newName = strtolower($newName);
-
+            $newName = uupCleanName($name);
             $files[$newName] = $temp;
         }
     }
 
     return $files;
+}
+
+function uupCleanName($name) {
+    $replace = array(
+        'cabs_' => null,
+        'metadataesd_' => null,
+        '~31bf3856ad364e35' => null,
+        '~~.' => '.',
+        '~.' => '.',
+        '~' => '-',
+    );
+
+    $name = strtr($name, 'QWERTYUIOPASDFGHJKLZXCVBNM', 'qwertyuiopasdfghjklzxcvbnm');
+    return strtr($name, $replace);
 }

@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2018 UUP dump API authors
+Copyright 2019 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=54',
+        'AttrDataVer=55',
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
+        'DefaultUserRegion=191',
         'DataVer_RS5='.PHP_INT_MAX,
         'DeviceFamily=Windows.Desktop',
-        'FirmwareVersion=6.00',
         'FlightContent='.$flight,
         'FlightRing='.$ring,
         'FlightingBranchName=external',
@@ -56,7 +56,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'OSVersion='.$build,
         'ProcessorIdentifier=Intel64 Family 6 Model 142 Stepping 9',
         'ProcessorManufacturer=GenuineIntel',
-        'TelemetryLevel=1',
+        'TelemetryLevel=3',
         'UpdateManagementGroup=2',
         'UpgEx_RS5=Green',
         'Version_RS5='.PHP_INT_MAX,
@@ -82,6 +82,10 @@ function branchFromBuild($build) {
 
         case 17134:
             $branch = 'rs4_release';
+            break;
+
+        case 17763:
+            $branch = 'rs5_release';
             break;
 
         default:
@@ -112,7 +116,41 @@ function composeFileGetRequest($updateId, $device, $info, $rev = 1) {
         $info['sku']
     );
 
-    return '<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><a:Action s:mustUnderstand="1">http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/GetExtendedUpdateInfo2</a:Action><a:MessageID>urn:uuid:'.$uuid.'</a:MessageID><a:To s:mustUnderstand="1">https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured</a:To><o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><Timestamp xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><Created>'.$created.'</Created><Expires>'.$expires.'</Expires></Timestamp><wuws:WindowsUpdateTicketsToken wsu:id="ClientMSA" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wuws="http://schemas.microsoft.com/msus/2014/10/WindowsUpdateAuthorization"><TicketType Name="MSA" Version="1.0" Policy="MBI_SSL"><Device>'.$device.'</Device></TicketType></wuws:WindowsUpdateTicketsToken></o:Security></s:Header><s:Body><GetExtendedUpdateInfo2 xmlns="http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService"><updateIDs><UpdateIdentity><UpdateID>'.$updateId.'</UpdateID><RevisionNumber>'.$rev.'</RevisionNumber></UpdateIdentity></updateIDs><infoTypes><XmlUpdateFragmentType>FileUrl</XmlUpdateFragmentType><XmlUpdateFragmentType>FileDecryption</XmlUpdateFragmentType></infoTypes><deviceAttributes>'.$deviceAttributes.'</deviceAttributes></GetExtendedUpdateInfo2></s:Body></s:Envelope>';
+    return <<<XML
+<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+    <s:Header>
+        <a:Action s:mustUnderstand="1">http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/GetExtendedUpdateInfo2</a:Action>
+        <a:MessageID>urn:uuid:$uuid</a:MessageID>
+        <a:To s:mustUnderstand="1">https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured</a:To>
+        <o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+            <Timestamp xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+                <Created>$created</Created>
+                <Expires>$expires</Expires>
+            </Timestamp>
+            <wuws:WindowsUpdateTicketsToken wsu:id="ClientMSA" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wuws="http://schemas.microsoft.com/msus/2014/10/WindowsUpdateAuthorization">
+                <TicketType Name="MSA" Version="1.0" Policy="MBI_SSL">
+                    <Device>$device</Device>
+                </TicketType>
+            </wuws:WindowsUpdateTicketsToken>
+        </o:Security>
+    </s:Header>
+    <s:Body>
+        <GetExtendedUpdateInfo2 xmlns="http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService">
+            <updateIDs>
+                <UpdateIdentity>
+                    <UpdateID>$updateId</UpdateID>
+                    <RevisionNumber>$rev</RevisionNumber>
+                </UpdateIdentity>
+            </updateIDs>
+            <infoTypes>
+                <XmlUpdateFragmentType>FileUrl</XmlUpdateFragmentType>
+                <XmlUpdateFragmentType>FileDecryption</XmlUpdateFragmentType>
+            </infoTypes>
+            <deviceAttributes>$deviceAttributes</deviceAttributes>
+        </GetExtendedUpdateInfo2>
+    </s:Body>
+</s:Envelope>
+XML;
 }
 
 // Composes POST data for fetching the latest update information from Windows Update
@@ -159,7 +197,60 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $sku
     );
 
-    return '<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><a:Action s:mustUnderstand="1">http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/SyncUpdates</a:Action><a:MessageID>urn:uuid:'.$uuid.'</a:MessageID><a:To s:mustUnderstand="1">https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx</a:To><o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><Timestamp xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><Created>'.$created.'</Created><Expires>'.$expires.'</Expires></Timestamp><wuws:WindowsUpdateTicketsToken wsu:id="ClientMSA" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wuws="http://schemas.microsoft.com/msus/2014/10/WindowsUpdateAuthorization"><TicketType Name="MSA" Version="1.0" Policy="MBI_SSL"><Device>'.$device.'</Device></TicketType></wuws:WindowsUpdateTicketsToken></o:Security></s:Header><s:Body><SyncUpdates xmlns="http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService"><cookie><Expiration>'.$cookieExpires.'</Expiration><EncryptedData>'.$encData.'</EncryptedData></cookie><parameters><ExpressQuery>false</ExpressQuery><InstalledNonLeafUpdateIDs></InstalledNonLeafUpdateIDs><OtherCachedUpdateIDs></OtherCachedUpdateIDs><SkipSoftwareSync>false</SkipSoftwareSync><NeedTwoGroupOutOfScopeUpdates>true</NeedTwoGroupOutOfScopeUpdates><AlsoPerformRegularSync>true</AlsoPerformRegularSync><ComputerSpec/><ExtendedUpdateInfoParameters><XmlUpdateFragmentTypes><XmlUpdateFragmentType>Extended</XmlUpdateFragmentType><XmlUpdateFragmentType>LocalizedProperties</XmlUpdateFragmentType><XmlUpdateFragmentType>Eula</XmlUpdateFragmentType></XmlUpdateFragmentTypes><Locales><string>en-US</string></Locales></ExtendedUpdateInfoParameters><ClientPreferredLanguages></ClientPreferredLanguages><ProductsParameters><SyncCurrentVersionOnly>false</SyncCurrentVersionOnly><DeviceAttributes>'.$deviceAttributes.'</DeviceAttributes><CallerAttributes>'.$callerAttrib.'</CallerAttributes><Products>'.$products.'</Products></ProductsParameters></parameters></SyncUpdates></s:Body></s:Envelope>';
+    return <<<XML
+<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+    <s:Header>
+        <a:Action s:mustUnderstand="1">http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/SyncUpdates</a:Action>
+        <a:MessageID>urn:uuid:$uuid</a:MessageID>
+        <a:To s:mustUnderstand="1">https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx</a:To>
+        <o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+            <Timestamp xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+                <Created>$created</Created>
+                <Expires>$expires</Expires>
+            </Timestamp>
+            <wuws:WindowsUpdateTicketsToken wsu:id="ClientMSA" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wuws="http://schemas.microsoft.com/msus/2014/10/WindowsUpdateAuthorization">
+                <TicketType Name="MSA" Version="1.0" Policy="MBI_SSL">
+                    <Device>$device</Device>
+                </TicketType>
+            </wuws:WindowsUpdateTicketsToken>
+        </o:Security>
+    </s:Header>
+    <s:Body>
+        <SyncUpdates xmlns="http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService">
+            <cookie>
+                <Expiration>$cookieExpires</Expiration>
+                <EncryptedData>$encData</EncryptedData>
+            </cookie>
+            <parameters>
+                <ExpressQuery>false</ExpressQuery>
+                <InstalledNonLeafUpdateIDs/>
+                <OtherCachedUpdateIDs/>
+                <SkipSoftwareSync>false</SkipSoftwareSync>
+                <NeedTwoGroupOutOfScopeUpdates>true</NeedTwoGroupOutOfScopeUpdates>
+                <AlsoPerformRegularSync>true</AlsoPerformRegularSync>
+                <ComputerSpec/>
+                <ExtendedUpdateInfoParameters>
+                    <XmlUpdateFragmentTypes>
+                        <XmlUpdateFragmentType>Extended</XmlUpdateFragmentType>
+                        <XmlUpdateFragmentType>LocalizedProperties</XmlUpdateFragmentType>
+                        <XmlUpdateFragmentType>Eula</XmlUpdateFragmentType>
+                    </XmlUpdateFragmentTypes>
+                    <Locales>
+                        <string>en-US</string>
+                    </Locales>
+                </ExtendedUpdateInfoParameters>
+                <ClientPreferredLanguages/>
+                <ProductsParameters>
+                    <SyncCurrentVersionOnly>false</SyncCurrentVersionOnly>
+                    <DeviceAttributes>$deviceAttributes</DeviceAttributes>
+                    <CallerAttributes>$callerAttrib</CallerAttributes>
+                    <Products>$products</Products>
+                </ProductsParameters>
+            </parameters>
+        </SyncUpdates>
+    </s:Body>
+</s:Envelope>
+XML;
 }
 
 // Composes POST data for Get Cookie request
@@ -172,6 +263,35 @@ function composeGetCookieRequest($device) {
     $created = gmdate(DATE_W3C, $createdTime);
     $expires = gmdate(DATE_W3C, $expiresTime);
 
-    return '<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope"><s:Header><a:Action s:mustUnderstand="1">http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/GetCookie</a:Action><a:MessageID>urn:uuid:'.$uuid.'</a:MessageID><a:To s:mustUnderstand="1">https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx</a:To><o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"><Timestamp xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd"><Created>'.$created.'</Created><Expires>'.$expires.'</Expires></Timestamp><wuws:WindowsUpdateTicketsToken wsu:id="ClientMSA" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wuws="http://schemas.microsoft.com/msus/2014/10/WindowsUpdateAuthorization"><TicketType Name="MSA" Version="1.0" Policy="MBI_SSL"><Device>'.$device.'</Device></TicketType></wuws:WindowsUpdateTicketsToken></o:Security></s:Header><s:Body><GetCookie xmlns="http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService"><oldCookie><Expiration>'.$created.'</Expiration></oldCookie><lastChange>'.$created.'</lastChange><currentTime>'.$created.'</currentTime><protocolVersion>2.0</protocolVersion></GetCookie></s:Body></s:Envelope>';
+    return <<<XML
+<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope">
+    <s:Header>
+        <a:Action s:mustUnderstand="1">http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService/GetCookie</a:Action>
+        <a:MessageID>urn:uuid:$uuid</a:MessageID>
+        <a:To s:mustUnderstand="1">https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx</a:To>
+        <o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+            <Timestamp xmlns="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+                <Created>$created</Created>
+                <Expires>$expires</Expires>
+            </Timestamp>
+            <wuws:WindowsUpdateTicketsToken wsu:id="ClientMSA" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:wuws="http://schemas.microsoft.com/msus/2014/10/WindowsUpdateAuthorization">
+                <TicketType Name="MSA" Version="1.0" Policy="MBI_SSL">
+                    <Device>$device</Device>
+                </TicketType>
+            </wuws:WindowsUpdateTicketsToken>
+        </o:Security>
+    </s:Header>
+    <s:Body>
+        <GetCookie xmlns="http://www.microsoft.com/SoftwareDistribution/Server/ClientWebService">
+            <oldCookie>
+                <Expiration>$created</Expiration>
+            </oldCookie>
+            <lastChange>$created</lastChange>
+            <currentTime>$created</currentTime>
+            <protocolVersion>2.0</protocolVersion>
+        </GetCookie>
+    </s:Body>
+</s:Envelope>
+XML;
 }
 ?>

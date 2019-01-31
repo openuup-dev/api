@@ -231,6 +231,8 @@ function uupGetGenPacks($build = 15063, $arch = null, $updateId = null) {
                     unset($temp);
                 }
             }
+        } elseif(!isset($metadata['knownBuilds'][$useBuild][$arch])) {
+            return array();
         } else {
             $hash = $metadata['knownBuilds'][$useBuild][$arch];
         }
