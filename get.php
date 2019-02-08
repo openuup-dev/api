@@ -222,7 +222,7 @@ function uupGetFiles(
 }
 
 function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
-    $cacheHash = hash('sha1', strtolower("api-get-${updateId}_rev.$rev"));
+    $cacheHash = hash('sha256', strtolower("api-get-${updateId}_rev.$rev"));
     $cached = 0;
 
     if(file_exists('cache/'.$cacheHash.'.json.gz') && $cacheRequests == 1) {

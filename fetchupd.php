@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2018 UUP dump API authors
+Copyright 2019 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -88,7 +88,7 @@ function uupFetchUpd(
 
     $build = '10.0.'.$build.'.'.$minor;
 
-    $cacheHash = hash('sha1', strtolower("api-fetch-$arch-$ring-$flight-$build-$minor-$sku"));
+    $cacheHash = hash('sha256', strtolower("api-fetch-$arch-$ring-$flight-$build-$minor-$sku"));
     $cached = 0;
 
     if(file_exists('cache/'.$cacheHash.'.json.gz') && $cacheRequests == 1) {
@@ -285,6 +285,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
             $temp['containsCU'] = 1;
         }
 
+        $temp['created'] = time();
         $temp['files'] = $shaArray;
 
         consoleLogger('Successfully parsed the information.');

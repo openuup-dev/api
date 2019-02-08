@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2018 UUP dump API authors
+Copyright 2019 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ limitations under the License.
 
 require_once dirname(__FILE__).'/shared/main.php';
 
-function uupListIds($search = null) {
+function uupListIds($search = null, $sortByDate = 0) {
     uupApiPrintBrand();
 
     if(!file_exists('fileinfo')) return array('error' => 'NO_FILEINFO_DIR');
@@ -27,8 +27,24 @@ function uupListIds($search = null) {
 
     consoleLogger('Parsing database info...');
 
-    $database = @file_get_contents('cache/fileinfo.json');
+    $cacheFile = 'cache/fileinfo_v2.json';
+    $cacheV2Version = 1;
+
+    $database = @file_get_contents($cacheFile);
     $database = json_decode($database, true);
+
+    if(isset($database['version'])) {
+        $version = $database['version'];
+    } else {
+        $version = 0;
+    }
+
+    if($version == $cacheV2Version && isset($database['database'])) {
+        $database = $database['database'];
+    } else {
+        $database = array();
+    }
+
     if(empty($database)) $database = array();
 
     $newDb = array();
@@ -44,11 +60,13 @@ function uupListIds($search = null) {
             $title = isset($info['title']) ? $info['title'] : 'UNKNOWN';
             $build = isset($info['build']) ? $info['build'] : 'UNKNOWN';
             $arch = isset($info['arch']) ? $info['arch'] : 'UNKNOWN';
+            $created = isset($info['created']) ? $info['created'] : null;
 
             $temp = array(
                 'title' => $title,
                 'build' => $build,
                 'arch' => $arch,
+                'created' => $created,
             );
 
             $newDb[$uuid] = $temp;
@@ -56,6 +74,7 @@ function uupListIds($search = null) {
             $title = $database[$uuid]['title'];
             $build = $database[$uuid]['build'];
             $arch = $database[$uuid]['arch'];
+            $created = $database[$uuid]['created'];
 
             $newDb[$uuid] = $database[$uuid];
         }
@@ -64,6 +83,7 @@ function uupListIds($search = null) {
             'title' => $title,
             'build' => $build,
             'arch' => $arch,
+            'created' => $created,
             'uuid' => $uuid,
         );
 
@@ -75,6 +95,10 @@ function uupListIds($search = null) {
         } else {
             consoleLogger($uuid.'.json appears to be broken and may be useless.');
             $tmp = 0;
+        }
+
+        if($sortByDate) {
+            $tmp = $created.$tmp;
         }
 
         $buildAssoc[$tmp][] = $arch.$title.$uuid;
@@ -104,9 +128,14 @@ function uupListIds($search = null) {
     if($newDb != $database) {
         if(!file_exists('cache')) mkdir('cache');
 
+        $cacheData = array(
+            'version' => $cacheV2Version,
+            'database' => $newDb,
+        );
+
         $success = @file_put_contents(
-            'cache/fileinfo.json',
-            json_encode($newDb)."\n"
+            $cacheFile,
+            json_encode($cacheData)."\n"
         );
 
         if(!$success) consoleLogger('Failed to update database cache.');
