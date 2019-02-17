@@ -43,15 +43,19 @@ function uupListLangs($updateId = 0) {
 
     $langList = array();
     $langListFancy = array();
-    foreach(array_keys($genPack) as $val) {
-        if(isset($fancyLangNames[$val])) {
-            $fancyName = $fancyLangNames[$val];
-        } else {
-            $fancyName = $val;
+    foreach($genPack as $key => $val) {
+        if(!count(array_diff(array_keys($val), array('LXP')))) {
+            continue;
         }
 
-        $langList[] = $val;
-        $langListFancy[$val] = $fancyName;
+        if(isset($fancyLangNames[$key])) {
+            $fancyName = $fancyLangNames[$key];
+        } else {
+            $fancyName = $key;
+        }
+
+        $langList[] = $key;
+        $langListFancy[$key] = $fancyName;
     }
 
     return array(
