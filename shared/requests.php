@@ -30,7 +30,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=55',
+        'AttrDataVer=57',
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
         'DefaultUserRegion=191',
@@ -54,7 +54,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'OSSkuId='.$sku,
         'OSUILocale=en-US',
         'OSVersion='.$build,
-        'ProcessorIdentifier=Intel64 Family 6 Model 142 Stepping 9',
+        'ProcessorIdentifier=Intel64 Family 6 Model 85 Stepping 4',
         'ProcessorManufacturer=GenuineIntel',
         'TelemetryLevel=3',
         'UpdateManagementGroup=2',
