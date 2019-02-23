@@ -189,6 +189,7 @@ function uupGetFiles(
         $newFiles = array();
         foreach($filesList as $val) {
             $name = uupCleanName($val);
+            $filesListKeys[] = $name;
 
             if(isset($files[$name])) {
                 $newFiles[$name] = $files[$name];
@@ -197,6 +198,17 @@ function uupGetFiles(
 
         $files = $newFiles;
         $filesKeys = array_keys($files);
+
+        $filesListKeys = array_unique($filesListKeys);
+        sort($filesListKeys);
+        $compare = array_diff($filesListKeys, $filesKeys);
+
+        if(count($compare)) {
+            foreach($compare as $val) {
+                consoleLogger("Missing file: $val");
+            }
+            return array('error' => 'MISSING_FILES');
+        }
     }
 
     if(empty($filesKeys)) {
@@ -373,6 +385,7 @@ function uupCleanName($name) {
     $replace = array(
         'cabs_' => null,
         'metadataesd_' => null,
+        'prss_signed_appx_' => null,
         '~31bf3856ad364e35' => null,
         '~~.' => '.',
         '~.' => '.',
