@@ -206,15 +206,12 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     $isCumulativeUpdate = 0;
     if(preg_match('/\d{4}-\d{2}.+Update/', $updateTitle)) {
         $isCumulativeUpdate = 1;
-        $updateTitle = preg_replace('/\d{4}-\d{2} /i', '', $updateTitle);
         $updateTitle = preg_replace('/ for .{3,5}-based systems| \(KB.*?\)/i', '', $updateTitle);
-
-        if(!preg_match("/$foundBuild/", $updateTitle)) {
-            $updateTitle = $updateTitle.' ('.$foundBuild.')';
-        }
     }
 
-    if(preg_match('/Feature update/i', $updateTitle)) {
+    $updateTitle = preg_replace("/ ?\d{4}-\d{2} ?| ?$arch ?/i", '', $updateTitle);
+
+    if(!preg_match("/$foundBuild/i", $updateTitle)) {
         $updateTitle = $updateTitle.' ('.$foundBuild.')';
     }
 

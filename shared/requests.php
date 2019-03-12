@@ -30,7 +30,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=57',
+        'AttrDataVer=60',
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
         'DefaultUserRegion=191',
@@ -41,6 +41,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'FlightingBranchName=external',
         'Free=32to64',
         'GStatus_RS5=2',
+        'GStatus_19H1=2',
         'InstallDate=1438196400',
         'InstallLanguage=en-US',
         'InstallationType=Client',
@@ -59,6 +60,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'TelemetryLevel=3',
         'UpdateManagementGroup=2',
         'UpgEx_RS5=Green',
+        'UpgEx_19H1=Green',
         'Version_RS5='.PHP_INT_MAX,
         'WuClientVer='.$build,
     );
