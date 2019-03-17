@@ -169,8 +169,14 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
 
     $branch = branchFromBuild($build);
 
+    if($sku == 7 || $sku == 8) {
+        $mainProduct = 'Server.OS';
+    } else {
+        $mainProduct = 'Client.OS.rs2';
+    }
+
     $products = array(
-        'PN=Client.OS.rs2.'.$arch.'&Branch='.$branch.'&PrimaryOSProduct=1&Repairable=1&V='.$build,
+        'PN='.$mainProduct.'.'.$arch.'&Branch='.$branch.'&PrimaryOSProduct=1&Repairable=1&V='.$build,
         'PN=Windows.Appraiser.'.$arch.'&Repairable=1&V='.$build,
         'PN=Windows.AppraiserData.'.$arch.'&Repairable=1&V='.$build,
         'PN=Windows.EmergencyUpdate.'.$arch.'&Repairable=1&V='.$build,
