@@ -204,7 +204,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     }
 
     $isCumulativeUpdate = 0;
-    if(preg_match('/\d{4}-\d{2}.+Update/', $updateTitle)) {
+    if(preg_match('/\d{4}-\d{2}.+Update|Cumulative Update/i', $updateTitle)) {
         $isCumulativeUpdate = 1;
         $updateTitle = preg_replace('/ for .{3,5}-based systems| \(KB.*?\)/i', '', $updateTitle);
     }
