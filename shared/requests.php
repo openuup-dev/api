@@ -18,19 +18,23 @@ limitations under the License.
 // Composes DeviceAttributes parameter needed to fetch data
 function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $branch = branchFromBuild($build);
+    $blockUpgrades = 0;
+    $flightEnabled = 1;
+    $isRetail = 0;
 
     if($ring == 'RETAIL') {
         $flightEnabled = 0;
         $isRetail = 1;
-    } else {
-        $flightEnabled = 1;
-        $isRetail = 0;
     }
+
+    if($sku == 125 || $sku == 126)
+        $blockUpgrades = 1;
 
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=60',
+        'AttrDataVer=61',
+        'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
         'DefaultUserRegion=191',
@@ -88,6 +92,10 @@ function branchFromBuild($build) {
 
         case 17763:
             $branch = 'rs5_release';
+            break;
+
+        case 18362:
+            $branch = '19h1_release';
             break;
 
         default:
@@ -176,7 +184,7 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     }
 
     $products = array(
-        'PN='.$mainProduct.'.'.$arch.'&Branch='.$branch.'&PrimaryOSProduct=1&Repairable=1&V='.$build,
+        'PN='.$mainProduct.'.'.$arch.'&Branch='.$branch.'&PrimaryOSProduct=1&Repairable=1&V='.$build.'&ReofferUpdate=1',
         'PN=Windows.Appraiser.'.$arch.'&Repairable=1&V='.$build,
         'PN=Windows.AppraiserData.'.$arch.'&Repairable=1&V='.$build,
         'PN=Windows.EmergencyUpdate.'.$arch.'&Repairable=1&V='.$build,
