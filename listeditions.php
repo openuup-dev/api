@@ -30,11 +30,11 @@ function uupListEditions($lang = 'en-us', $updateId = 0) {
         $build = explode('.', $info['build']);
         $build = $build[0];
     } else {
-        $build = 9841;
+        $build = 15063;
     }
 
     if(!isset($info['arch'])) {
-        $arch = null;
+        $info['arch'] = null;
     }
 
     $genPack = uupGetGenPacks($build, $info['arch'], $updateId);

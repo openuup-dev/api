@@ -2,7 +2,7 @@ UUP dump API
 ------------
 
 ### Functions
-#### fetchupd.php: `uupFetchUpd($arch, $ring, $flight, $build, $minor);`
+#### fetchupd.php: `uupFetchUpd($arch, $ring, $flight, $build, $minor, $sku, $cacheRequests);`
 Fetches latest update information from Windows Update servers.
 
 Parameters:
@@ -10,19 +10,25 @@ Parameters:
    - **Supported values:** `amd64`, `arm64`, `x86`
 
  - `ring` - Ring to use when fetching information
-   - **Supported values:** `WIF`, `WIS`, `RP`
+   - **Supported values:** `WIF`, `WIS`, `RP`, `RETAIL`
 
  - `flight` - Flight to use when fetching information
    - **Supported values:** `Active`, `Skip`, `Current`
    - **NOTE:** `Skip` is for `WIF` ring only. `Current` is for `RP` ring only.
 
  - `build` - Build number to use when fetching information
-   - **Supported values:** >= 15063 and <= 65536
+   - **Supported values:** >= 9841 and <= PHP_INT_MAX-1
 
  - `minor` - Build minor to use when fetching information
-   - **Supported values:** >= 0 and <= 65536
+   - **Supported values:** >= 0 and <= PHP_INT_MAX-1
 
-#### get.php: `uupGetFiles($updateId, $usePack, $desiredEdition);`
+ - `sku` - SKU number to use when fetching information
+   - **Supported values:** Any integer
+
+ - `cacheRequests` - Should request responses be cached? (optional)
+   - **Supported values:** 0 = Disable (default), 1 = Enable
+
+#### get.php: `uupGetFiles($updateId, $usePack, $desiredEdition, $requestType);`
 Fetches files from `updateId` update and parses to array.
 
 Parameters:
@@ -36,24 +42,40 @@ Parameters:
    - **Supported values:** any update UUID
    - **NOTE:** You need to specify `usePack` to get successful request
 
-#### listeditions.php: `uupListEditions($lang);`
-Outputs list of supported editions for selected language.
+ - `$requestType` - Type of request to the API (optional)
+   - **Supported values:**
+     - 0 = uncached request (default)
+     - 1 = use cache if available
+     - 2 = offline information retrieval
+
+#### listeditions.php: `uupListEditions($lang, $updateId);`
+Outputs list of supported editions for selected language and Update ID.
 
 Parameters:
  - `lang` - Generate list for selected language
    - **Supported values:** language name in xx-xx format
 
-#### listid.php: `uupListIds();`
+ - `updateId` - Update identifier (optional)
+   - **Supported values:** any update UUID
+
+#### listid.php: `uupListIds($search, $sortByDate);`
 Outputs list of updates in fileinfo database.
 
 Parameters:
- - None
+ - `search` - Search query (optional)
+   - **Supported values:** any text
 
-#### listlangs.php: `uupListLangs();`
-Outputs list of languages supported by project.
+ - `sortByDate` - Sort results by creation date (optional)
+   - **Supported values:** 0 = Disable, 1 = Enable
+
+
+#### listlangs.php: `uupListLangs($updateId);`
+Outputs list of languages supported for specified Update ID.
 
 Parameters:
- - None
+ - `updateId` - Update identifier (optional)
+   - **Supported values:** any update UUID
+
 
 #### updateinfo.php: `uupUpdateInfo($updateId, $onlyInfo);`
 Outputs specified information of specified `updateId`.
@@ -88,12 +110,16 @@ Parameters:
  - UNSUPPORTED_EDITION
  - UNSUPPORTED_COMBINATION
  - EMPTY_FILELIST
+ - MISSING_FILES
+ - NO_FILES
+ - XML_PARSE_ERROR
 
 **listeditions.php**
  - UNSUPPORTED_LANG
 
 **listid.php**
  - NO_FILEINFO_DIR
+ - SEARCH_NO_RESULTS
 
 **updateinfo.php**
  - UPDATE_INFORMATION_NOT_EXISTS
