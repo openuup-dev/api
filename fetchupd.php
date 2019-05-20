@@ -209,7 +209,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         $updateTitle = preg_replace('/ for .{3,5}-based systems| \(KB.*?\)/i', '', $updateTitle);
     }
 
-    $updateTitle = preg_replace("/ ?\d{4}-\d{2}\w{0,1} ?| ?$arch ?| ?x64 ?/i", '', $updateTitle);
+    $updateTitle = preg_replace("/ ?\d{4}-\d{2}\w* ?| ?$arch ?| ?x64 ?/i", '', $updateTitle);
 
     if(!preg_match("/$foundBuild/i", $updateTitle)) {
         $updateTitle = $updateTitle.' ('.$foundBuild.')';
