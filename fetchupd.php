@@ -128,7 +128,7 @@ function uupFetchUpd(
     }
 
     preg_match_all('/<UpdateInfo>.*?<\/UpdateInfo>/', $out, $updateInfos);
-    $updateInfo = preg_grep('/<Action>Install<\/Action>/', $updateInfos[0]);
+    $updateInfo = preg_grep('/<IsLeaf>true<\/IsLeaf>/', $updateInfos[0]);
     sort($updateInfo);
 
     if(empty($updateInfo)) {
@@ -181,8 +181,13 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     $updateFiles = preg_grep('/<Files>.*<\/Files>/', $updateMeta);
     sort($updateFiles);
 
+    if(!isset($updateFiles[0])) {
+        consoleLogger('An error has occurred');
+        return array('error' => 'EMPTY_FILELIST');
+    }
+
     preg_match('/<Files>.*<\/Files>/', $updateFiles[0], $fileList);
-    if(empty($fileList[0])) {
+    if(!isset($fileList[0]) || empty($fileList[0])) {
         consoleLogger('An error has occurred');
         return array('error' => 'EMPTY_FILELIST');
     }
@@ -324,4 +329,3 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         'fileWrite' => $fileWrite,
     );
 }
-?>
