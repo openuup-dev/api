@@ -46,7 +46,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'FlightingBranchName=external',
         'Free=32to64',
         'GStatus_19H1=2',
-        'GStatus_19H1Setup=Green',
+        'GStatus_19H1Setup=2',
         'GStatus_RS5=2',
         'GenTelRunTimestamp_19H1='.(time()-3600),
         'InstallDate=1438196400',
