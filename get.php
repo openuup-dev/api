@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2019 UUP dump API authors
+Copyright 2019 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -71,38 +71,52 @@ function uupGetFiles(
         }
     }
 
-    $desiredEdition = strtoupper($desiredEdition);
-    $fileListSource = $desiredEdition;
+    if(!is_array($desiredEdition)) {
+        $desiredEdition = strtoupper($desiredEdition);
+        $fileListSource = $desiredEdition;
 
-    switch($desiredEdition) {
-        case '0':
-            if($usePack) {
-                $fileListSource = 'GENERATEDPACKS';
+        switch($desiredEdition) {
+            case '0':
+                if($usePack) {
+                    $fileListSource = 'GENERATEDPACKS';
 
-                $filesList = array();
-                foreach($genPack[$usePack] as $val) {
-                    foreach($val as $package) {
-                        $filesList[] = $package;
+                    $filesList = array();
+                    foreach($genPack[$usePack] as $val) {
+                        foreach($val as $package) {
+                            $filesList[] = $package;
+                        }
                     }
+
+                    array_unique($filesList);
+                    sort($filesList);
+                }
+                break;
+
+            case 'WUBFILE': break;
+
+            case 'UPDATEONLY': break;
+
+            default:
+                if(!isset($genPack[$usePack][$desiredEdition])) {
+                    return array('error' => 'UNSUPPORTED_COMBINATION');
                 }
 
-                array_unique($filesList);
-                sort($filesList);
-            }
-            break;
+                $filesList = $genPack[$usePack][$desiredEdition];
+                $fileListSource = 'GENERATEDPACKS';
+                break;
+        }
+    } else {
+        $fileListSource = 'GENERATEDPACKS';
+        $filesList = array();
+        foreach($desiredEdition as $edition) {
+            $edition = strtoupper($edition);
 
-        case 'WUBFILE': break;
-
-        case 'UPDATEONLY': break;
-
-        default:
-            if(!isset($genPack[$usePack][$desiredEdition])) {
+            if(!isset($genPack[$usePack][$edition])) {
                 return array('error' => 'UNSUPPORTED_COMBINATION');
             }
 
-            $filesList = $genPack[$usePack][$desiredEdition];
-            $fileListSource = 'GENERATEDPACKS';
-            break;
+            $filesList = array_merge($filesList, $genPack[$usePack][$edition]);
+        }
     }
 
     $rev = 1;

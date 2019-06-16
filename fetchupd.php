@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2019 UUP dump API authors
+Copyright 2019 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -60,7 +60,7 @@ function uupFetchUpd(
     $build = intval($build[0]);
     $sku = intval($sku);
 
-    if(!($arch == 'amd64' || $arch == 'x86' || $arch == 'arm64' || $arch == 'arm')) {
+    if(!($arch == 'amd64' || $arch == 'x86' || $arch == 'arm64' || $arch == 'arm' || $arch == 'all')) {
         return array('error' => 'UNKNOWN_ARCH');
     }
 
@@ -192,8 +192,9 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         return array('error' => 'EMPTY_FILELIST');
     }
 
-    preg_match('/Version\=".*?"/', $updateInfo, $foundBuild);
-    $foundBuild = preg_replace('/Version="10\.0\.|"/', '', $foundBuild[0]);
+    preg_match('/ProductReleaseInstalled Name\=".*\.(.*?)" Version\="10\.0\.(.*?)"/', $updateInfo, $info);
+    $foundArch = strtolower($info[1]);
+    $foundBuild = $info[2];
 
     $updateTitle = preg_grep('/<Title>.*<\/Title>/', $updateMeta);
     sort($updateTitle);
@@ -214,7 +215,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         $updateTitle = preg_replace('/ for .{3,5}-based systems| \(KB.*?\)/i', '', $updateTitle);
     }
 
-    $updateTitle = preg_replace("/ ?\d{4}-\d{2}\w* ?| ?$arch ?| ?x64 ?/i", '', $updateTitle);
+    $updateTitle = preg_replace("/ ?\d{4}-\d{2}\w* ?| ?$foundArch ?| ?x64 ?/i", '', $updateTitle);
 
     if(!preg_match("/$foundBuild/i", $updateTitle)) {
         $updateTitle = $updateTitle.' ('.$foundBuild.')';
@@ -235,7 +236,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
 
     consoleLogger("--- UPDATE INFORMATION ---");
     consoleLogger("Title:        ".$updateTitle);
-    consoleLogger("Architecture: ".$arch);
+    consoleLogger("Architecture: ".$foundArch);
     consoleLogger("Build number: ".$foundBuild);
     consoleLogger("Update ID:    ".$updateString);
     consoleLogger("--- UPDATE INFORMATION ---");
@@ -278,7 +279,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         $temp['title'] = $updateTitle;
         $temp['ring'] = $ring;
         $temp['flight'] = $flight;
-        $temp['arch'] = $arch;
+        $temp['arch'] = $foundArch;
         $temp['build'] = $foundBuild;
         $temp['checkBuild'] = $build;
         $temp['sku'] = $sku;
@@ -307,7 +308,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     $ids = uupListIds();
     if(!isset($ids['error'])) {
         $ids = $ids['builds'];
-        $buildName = $foundBuild.' '.$updateTitle.' '.$arch;
+        $buildName = $foundBuild.' '.$updateTitle.' '.$foundArch;
 
         foreach($ids as $val) {
             $testName = $val['build'].' '.$val['title'].' '.$val['arch'];
@@ -325,7 +326,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         'updateId' => $updateString,
         'updateTitle' => $updateTitle,
         'foundBuild' => $foundBuild,
-        'arch' => $arch,
+        'arch' => $foundArch,
         'fileWrite' => $fileWrite,
     );
 }

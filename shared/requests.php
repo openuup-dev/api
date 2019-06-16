@@ -33,7 +33,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=62',
+        'AttrDataVer=63',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
@@ -58,7 +58,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'OEMModel=Largehard Device Model 42069',
         'OEMModelBaseBoard=Largehard Base Board',
         'OEMName_Uncleaned=Largehard Corporation',
-        'OSArchitecture='.$arch,
+        'OSArchitecture='.$arch[0],
         'OSSkuId='.$sku,
         'OSUILocale=en-US',
         'OSVersion='.$build,
@@ -187,17 +187,31 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $mainProduct = 'Client.OS.rs2';
     }
 
-    $products = array(
-        'PN='.$mainProduct.'.'.$arch.'&Branch='.$branch.'&PrimaryOSProduct=1&Repairable=1&V='.$build.'&ReofferUpdate=1',
-        'PN=Windows.Appraiser.'.$arch.'&Repairable=1&V='.$build,
-        'PN=Windows.AppraiserData.'.$arch.'&Repairable=1&V='.$build,
-        'PN=Windows.EmergencyUpdate.'.$arch.'&Repairable=1&V='.$build,
-        'PN=Windows.OOBE.'.$arch.'&IsWindowsOOBE=1&Repairable=1&V='.$build,
-        'PN=Windows.UpdateStackPackage.'.$arch.'&Name=Update Stack Package&Repairable=1&V='.$build,
-        'PN=Hammer.'.$arch.'&Source=UpdateOrchestrator&V=0.0.0.0',
-        'PN=MSRT.'.$arch.'&Source=UpdateOrchestrator&V=0.0.0.0',
-        'PN=SedimentPack.'.$arch.'&Source=UpdateOrchestrator&V=0.0.0.0',
-    );
+    if($arch == 'all') {
+        $arch = array(
+            'amd64',
+            'x86',
+            'arm64',
+            'arm',
+        );
+    }
+
+    if(!is_array($arch)) {
+        $arch = array($arch);
+    }
+
+    $products = array();
+    foreach($arch as $currArch) {
+        $products[] = "PN=$mainProduct.$currArch&Branch=$branch&PrimaryOSProduct=1&Repairable=1&V=$build&ReofferUpdate=1";
+        $products[] = "PN=Windows.Appraiser.$currArch&Repairable=1&V=$build";
+        $products[] = "PN=Windows.AppraiserData.$currArch&Repairable=1&V=$build";
+        $products[] = "PN=Windows.EmergencyUpdate.$currArch&Repairable=1&V=$build";
+        $products[] = "PN=Windows.OOBE.$currArch&IsWindowsOOBE=1&Repairable=1&V=$build";
+        $products[] = "PN=Windows.UpdateStackPackage.$currArch&Name=Update Stack Package&Repairable=1&V=$build";
+        $products[] = "PN=Hammer.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
+        $products[] = "PN=MSRT.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
+        $products[] = "PN=SedimentPack.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
+    }
 
     $callerAttrib = array(
         'Id=UpdateOrchestrator',
