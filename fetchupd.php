@@ -169,7 +169,7 @@ function uupFetchUpd(
     );
 }
 
-function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku = '48') {
+function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku) {
     $updateNumId = preg_replace('/<UpdateInfo><ID>|<\/ID>.*/i', '', $updateInfo);
 
     $updates = preg_replace('/<Update>/', "\n<Update>", $out);
@@ -232,6 +232,29 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     $updateString = $updateId;
     if($updateRev != 1) {
         $updateString = $updateId.'_rev.'.$updateRev;
+    }
+
+    $ids = uupListIds();
+    if(!isset($ids['error'])) {
+        $ids = $ids['builds'];
+        $namesList = array();
+
+        foreach($ids as $val) {
+            $testName = $val['build'].' '.$val['title'].' '.$val['arch'];
+
+            if($val['uuid'] != $updateString) {
+                $namesList[$val['uuid']] = $testName;
+            }
+        }
+
+        $num = 1;
+        $buildName = $foundBuild.' '.$updateTitle.' '.$foundArch;
+        while(in_array($buildName, $namesList, true)) {
+            $num++;
+            $buildName = "$foundBuild $updateTitle ($num) $foundArch";
+        }
+
+        if($num > 1) $updateTitle = "$updateTitle ($num)";
     }
 
     consoleLogger("--- UPDATE INFORMATION ---");
@@ -303,23 +326,6 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         }
     } else {
         consoleLogger('This build already exists in the database.');
-    }
-
-    $ids = uupListIds();
-    if(!isset($ids['error'])) {
-        $ids = $ids['builds'];
-        $buildName = $foundBuild.' '.$updateTitle.' '.$foundArch;
-
-        foreach($ids as $val) {
-            $testName = $val['build'].' '.$val['title'].' '.$val['arch'];
-            if($buildName == $testName && $val['uuid'] != $updateString) {
-                unlink(realpath('fileinfo/'.$val['uuid'].'.json'));
-                if(file_exists('packs/'.$val['uuid'].'.json.gz')) {
-                    unlink(realpath('packs/'.$val['uuid'].'.json.gz'));
-                }
-                consoleLogger('Removed superseded update: '.$val['uuid']);
-            }
-        }
     }
 
     return array(
