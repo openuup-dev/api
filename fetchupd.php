@@ -109,7 +109,7 @@ function uupFetchUpd(
     if(!$cached) {
         consoleLogger('Fetching information from the server...');
         $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build, $sku);
-        $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
+        $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
 
         $out = html_entity_decode($out);
         consoleLogger('Information has been successfully fetched.');
@@ -263,6 +263,11 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     consoleLogger("Build number: ".$foundBuild);
     consoleLogger("Update ID:    ".$updateString);
     consoleLogger("--- UPDATE INFORMATION ---");
+
+    if(preg_match('/Corpnet Required/i', $updateTitle)) {
+        consoleLogger('Skipping corpnet only update...');
+        return array('error' => 'CORPNET_ONLY_UPDATE');
+    }
 
     $fileWrite = 'NO_SAVE';
     if(!file_exists('fileinfo/'.$updateString.'.json')) {

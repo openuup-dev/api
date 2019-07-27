@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2018 UUP dump API authors
+Copyright 2019 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -54,6 +54,11 @@ function genUUID() {
 function sendWuPostRequest($url, $postData) {
     $req = curl_init($url);
 
+    $proxy = uupDumpApiGetDebug();
+    if(isset($proxy['proxy'])) {
+        curl_setopt($req, CURLOPT_PROXY, $proxy['proxy']);
+    }
+
     curl_setopt($req, CURLOPT_HEADER, 0);
     curl_setopt($req, CURLOPT_POST, 1);
     curl_setopt($req, CURLOPT_RETURNTRANSFER, 1);
@@ -99,4 +104,12 @@ function consoleLogger($message, $showTime = 1) {
     $msg = $currTime.$message;
     fwrite(STDERR, $msg."\n");
 }
-?>
+
+function uupDumpApiGetDebug() {
+    if(!file_exists('debug.ini')) {
+        return null;
+    }
+
+    $data = parse_ini_file('debug.ini');
+    return $data;
+}

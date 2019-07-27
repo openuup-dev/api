@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2019 UUP dump API authors
+Copyright 2019 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -159,6 +159,9 @@ function composeFileGetRequest($updateId, $device, $info, $rev = 1) {
             <infoTypes>
                 <XmlUpdateFragmentType>FileUrl</XmlUpdateFragmentType>
                 <XmlUpdateFragmentType>FileDecryption</XmlUpdateFragmentType>
+                <XmlUpdateFragmentType>EsrpDecryptionInformation</XmlUpdateFragmentType>
+                <XmlUpdateFragmentType>PiecesHashUrl</XmlUpdateFragmentType>
+                <XmlUpdateFragmentType>BlockMapUrl</XmlUpdateFragmentType>
             </infoTypes>
             <deviceAttributes>$deviceAttributes</deviceAttributes>
         </GetExtendedUpdateInfo2>

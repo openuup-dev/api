@@ -271,7 +271,7 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
         $fetchTime = time();
         consoleLogger('Fetching information from the server...');
         $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev);
-        $out = sendWuPostRequest('https://fe3.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
+        $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
         consoleLogger('Information has been successfully fetched.');
 
         if($cacheRequests == 1) {
