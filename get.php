@@ -358,7 +358,7 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
             $temp['url'] = $url;
             $temp['uuid'] = $guid;
             $temp['expire'] = $expire;
-
+            $temp['debug'] = $val->asXML();
 
             $newName = uupCleanName($name);
             $files[$newName] = $temp;
@@ -386,6 +386,7 @@ function uupGetOfflineFiles($info) {
             $temp['url'] = null;
             $temp['uuid'] = null;
             $temp['expire'] = 0;
+            $temp['debug'] = null;
 
             $newName = uupCleanName($name);
             $files[$newName] = $temp;
