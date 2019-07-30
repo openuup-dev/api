@@ -22,6 +22,10 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $flightEnabled = 1;
     $isRetail = 0;
 
+    if(is_array($arch)) {
+        $arch = $arch[0];
+    }
+
     if($ring == 'RETAIL') {
         $flightEnabled = 0;
         $isRetail = 1;
@@ -58,7 +62,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'OEMModel=Largehard Device Model 42069',
         'OEMModelBaseBoard=Largehard Base Board',
         'OEMName_Uncleaned=Largehard Corporation',
-        'OSArchitecture='.$arch[0],
+        'OSArchitecture='.$arch,
         'OSSkuId='.$sku,
         'OSUILocale=en-US',
         'OSVersion='.$build,
