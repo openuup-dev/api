@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2018 UUP dump API authors
+Copyright 2019 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@ limitations under the License.
 */
 
 function uupDevice() {
-    $tValue = base64_encode(hex2bin(randStr(60)));
+    $tValueHeader = '13003002c377040014d5bcac7a66de0d50beddf9bba16c87edb9e019898000';
+    $tValueRandom = randStr(1054);
+    $tValueEnd = 'b401';
+
+    $tValue = base64_encode(hex2bin($tValueHeader.$tValueRandom.$tValueEnd));
     $data = 't='.$tValue.'&p=';
     return base64_encode(chunk_split($data, 1, "\0"));
 }

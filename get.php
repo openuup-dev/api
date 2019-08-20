@@ -273,19 +273,6 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
         $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev);
         $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
         consoleLogger('Information has been successfully fetched.');
-
-        if($cacheRequests == 1) {
-            $cache = array(
-                'expires' => time()+90,
-                'content' => $out,
-                'fetchTime' => $fetchTime,
-            );
-
-            if(!file_exists('cache')) mkdir('cache');
-            @file_put_contents('cache/'.$cacheHash.'.json.gz', gzencode(json_encode($cache)."\n"));
-
-            unset($cache);
-        }
     }
 
     consoleLogger('Parsing information...');
@@ -363,6 +350,17 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
             $newName = uupCleanName($name);
             $files[$newName] = $temp;
         }
+    }
+
+    if($cacheRequests == 1) {
+        $cache = array(
+            'expires' => time()+90,
+            'content' => $out,
+            'fetchTime' => $fetchTime,
+        );
+
+        if(!file_exists('cache')) mkdir('cache');
+        @file_put_contents('cache/'.$cacheHash.'.json.gz', gzencode(json_encode($cache)."\n"));
     }
 
     return $files;
