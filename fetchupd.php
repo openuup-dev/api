@@ -192,9 +192,10 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         return array('error' => 'EMPTY_FILELIST');
     }
 
-    preg_match('/ProductReleaseInstalled Name\=".*\.(.*?)" Version\="10\.0\.(.*?)"/', $updateInfo, $info);
-    $foundArch = strtolower($info[1]);
-    $foundBuild = $info[2];
+    preg_match('/ProductReleaseInstalled Name\="(.*?)\..*\.(.*?)" Version\="10\.0\.(.*?)"/', $updateInfo, $info);
+    $foundType = strtolower($info[1]);
+    $foundArch = strtolower($info[2]);
+    $foundBuild = $info[3];
 
     $updateTitle = preg_grep('/<Title>.*<\/Title>/', $updateMeta);
     sort($updateTitle);
@@ -217,9 +218,11 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
 
     $updateTitle = preg_replace("/ ?\d{4}-\d{2}\w* ?| ?$foundArch ?| ?x64 ?/i", '', $updateTitle);
 
-    if(!preg_match("/$foundBuild/i", $updateTitle)) {
+    if($foundType == 'server')
+        $updateTitle = str_replace('Windows 10', 'Windows Server', $updateTitle);
+
+    if(!preg_match("/$foundBuild/i", $updateTitle))
         $updateTitle = $updateTitle.' ('.$foundBuild.')';
-    }
 
     preg_match('/UpdateID=".*?"/', $updateInfo, $updateId);
     preg_match('/RevisionNumber=".*?"/', $updateInfo, $updateRev);
