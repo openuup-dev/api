@@ -24,6 +24,10 @@ function uupListEditions($lang = 'en-us', $updateId = 0) {
         $info = uupUpdateInfo($updateId);
     }
 
+    if(!$lang) {
+        return array('error' => 'UNSUPPORTED_LANG');
+    }
+
     if(isset($info['info'])) $info = $info['info'];
 
     if(isset($info['build'])) {

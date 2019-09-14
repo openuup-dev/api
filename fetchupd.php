@@ -164,7 +164,7 @@ function uupFetchUpd(
         'updateTitle' => $updateArray[0]['updateTitle'],
         'foundBuild' => $updateArray[0]['foundBuild'],
         'arch' => $updateArray[0]['arch'],
-        'fileWrite' => $updateArray[0]['foundBuild'],
+        'fileWrite' => $updateArray[0]['fileWrite'],
         'updateArray' => $updateArray,
     );
 }

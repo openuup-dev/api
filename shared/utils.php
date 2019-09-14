@@ -113,3 +113,10 @@ function uupDumpApiGetDebug() {
     $data = parse_ini_file('debug.ini');
     return $data;
 }
+
+function uupApiCheckUpdateId($updateId) {
+    return preg_match(
+        '/^[\da-fA-F]{8}-([\da-fA-F]{4}-){3}[\da-fA-F]{12}(_rev\.\d+)?$/',
+        $updateId
+    );
+}

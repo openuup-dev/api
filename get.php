@@ -37,6 +37,14 @@ function uupGetFiles(
 ) {
     uupApiPrintBrand();
 
+    if(!$updateId) {
+        return array('error' => 'UNSPECIFIED_UPDATE');
+    }
+
+    if(!uupApiCheckUpdateId($updateId)) {
+            return array('error' => 'INCORRECT_ID');
+    }
+
     $info = @file_get_contents('fileinfo/'.$updateId.'.json');
     if(empty($info)) {
         $info = array(
