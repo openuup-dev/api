@@ -37,7 +37,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=66',
+        'AttrDataVer=69',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
@@ -45,6 +45,8 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'DataVer_RS5=2000000000',
         'DefaultUserRegion=191',
         'DeviceFamily=Windows.Desktop',
+        'EKB19H2InstallCount=1',
+        'EKB19H2InstallTimeEpoch=1255000000',
         'FlightContent='.$flight,
         'FlightRing='.$ring,
         'FlightingBranchName=external',
@@ -213,6 +215,7 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $products[] = "PN=Windows.Appraiser.$currArch&Repairable=1&V=$build";
         $products[] = "PN=Windows.AppraiserData.$currArch&Repairable=1&V=$build";
         $products[] = "PN=Windows.EmergencyUpdate.$currArch&Repairable=1&V=$build";
+        $products[] = "PN=Windows.ManagementOOBE.$currArch&IsWindowsManagementOOBE=1&Repairable=1&V=$build";
         $products[] = "PN=Windows.OOBE.$currArch&IsWindowsOOBE=1&Repairable=1&V=$build";
         $products[] = "PN=Windows.UpdateStackPackage.$currArch&Name=Update Stack Package&Repairable=1&V=$build";
         $products[] = "PN=Hammer.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
