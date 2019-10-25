@@ -43,15 +43,7 @@ function uupFetchUpd(
             $ids['builds'] = array();
         }
 
-        $ids = $ids['builds'];
-        foreach($ids as $val) {
-            $builds[] = $val['build'];
-        }
-
-        $builds = array_unique($builds);
-        rsort($builds);
-
-        $build = $builds[0];
+        $build = $ids['builds'][0]['build'];
         unset($builds, $ids);
     }
 
@@ -193,9 +185,9 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     }
 
     preg_match('/ProductReleaseInstalled Name\="(.*?)\..*\.(.*?)" Version\="10\.0\.(.*?)"/', $updateInfo, $info);
-    $foundType = strtolower($info[1]);
-    $foundArch = strtolower($info[2]);
-    $foundBuild = $info[3];
+    $foundType = @strtolower($info[1]);
+    $foundArch = @strtolower($info[2]);
+    $foundBuild = @$info[3];
 
     $updateTitle = preg_grep('/<Title>.*<\/Title>/', $updateMeta);
     sort($updateTitle);
@@ -266,6 +258,11 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     consoleLogger("Build number: ".$foundBuild);
     consoleLogger("Update ID:    ".$updateString);
     consoleLogger("--- UPDATE INFORMATION ---");
+
+    if((!$foundBuild) && (!$foundArch)) {
+        consoleLogger('No architecture nor build number specified! What the hell is this?');
+        return array('error' => 'BROKEN_UPDATE');
+    }
 
     if(preg_match('/Corpnet Required/i', $updateTitle)) {
         consoleLogger('Skipping corpnet only update...');

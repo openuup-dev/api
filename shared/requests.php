@@ -108,6 +108,10 @@ function branchFromBuild($build) {
             $branch = '19h1_release';
             break;
 
+        case 18363: //18363 is a fake build based on 18362
+            $branch = '19h1_release';
+            break;
+
         default:
             $branch = 'rs_prerelease';
             break;
