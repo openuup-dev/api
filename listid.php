@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2019 UUP dump API authors
+Copyright 2019 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -142,11 +142,22 @@ function uupListIds($search = null, $sortByDate = 0) {
     }
 
     if($search) {
-        $searchSafe = preg_quote($search, '/');
-        if(preg_match('/^".*"$/', $searchSafe)) {
-            $searchSafe = preg_replace('/^"|"$/', '', $searchSafe);
+        if(!preg_match('/^regex:/', $search)) {
+            $searchSafe = preg_quote($search, '/');
+
+            if(preg_match('/^".*"$/', $searchSafe)) {
+                $searchSafe = preg_replace('/^"|"$/', '', $searchSafe);
+            } else {
+                $searchSafe = str_replace(' ', '.*', $searchSafe);
+            }
         } else {
-            $searchSafe = str_replace(' ', '.*', $searchSafe);
+            $searchSafe = preg_replace('/^regex:/', '', $search);
+        }
+
+        //I really hope that this will not backfire at me
+        @preg_match("/$searchSafe/", "");
+        if(preg_last_error()) {
+            return array('error' => 'SEARCH_NO_RESULTS');
         }
 
         foreach($builds as $key => $val) {
@@ -172,4 +183,3 @@ function uupListIds($search = null, $sortByDate = 0) {
         'builds' => $builds,
     );
 }
-?>
