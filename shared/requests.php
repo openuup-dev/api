@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2019 whatever127
+Copyright 2020 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=69',
+        'AttrDataVer=75',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
@@ -110,6 +110,10 @@ function branchFromBuild($build) {
 
         case 18363: //18363 is a fake build based on 18362
             $branch = '19h1_release';
+            break;
+
+        case 19041:
+            $branch = 'vb_release';
             break;
 
         default:
@@ -228,10 +232,11 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     }
 
     $callerAttrib = array(
-        'Id=UpdateOrchestrator',
-        'SheddingAware=1',
         'Interactive=1',
+        'Profile=AUv2',
+        'SheddingAware=1',
         'IsSeeker=1',
+        'Id=MoUpdateOrchestrator',
     );
 
     $products = htmlentities(implode(';', $products));
