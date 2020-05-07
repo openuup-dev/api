@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2019 whatever127
+Copyright 2020 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -71,7 +71,22 @@ function sendWuPostRequest($url, $postData) {
     ));
 
     $out = curl_exec($req);
+    $error = curl_getinfo($req, CURLINFO_RESPONSE_CODE);
+
     curl_close($req);
+
+    /*
+    Replace an expired cookie with a new one by replacing it in existing
+    postData. This has to be done this way, because handling it properly would
+    most likely require a rewrite of half of the project.
+    */
+    if($error == 500 && preg_match('/<ErrorCode>(ConfigChanged|CookieExpired)<\/ErrorCode>/', $out)) {
+        $oldCookie = uupEncryptedData();
+        @unlink(dirname(__FILE__).'/cookie.json');
+        $postData = str_replace($oldCookie, uupEncryptedData(), $postData);
+
+        return sendWuPostRequest($url, $postData);
+    }
 
     $outDecoded = html_entity_decode($out);
     preg_match('/<NewCookie>.*?<\/NewCookie>|<GetCookieResult>.*?<\/GetCookieResult>/', $outDecoded, $cookieData);
