@@ -37,10 +37,11 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=75',
+        'AttrDataVer=96',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
+        'DataExpDateEpoch_20H1='.(time()+82800),
         'DataExpDateEpoch_19H1='.(time()+82800),
         'DataVer_RS5=2000000000',
         'DefaultUserRegion=191',
@@ -51,6 +52,8 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'FlightRing='.$ring,
         'FlightingBranchName=external',
         'Free=32to64',
+        'GStatus_20H1=2',
+        'GStatus_20H1Setup=2',
         'GStatus_19H1=2',
         'GStatus_19H1Setup=2',
         'GStatus_RS5=2',
@@ -61,6 +64,9 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'IsDeviceRetailDemo=0',
         'IsFlightingEnabled='.$flightEnabled,
         'IsRetailOS='.$isRetail,
+        'MediaVersion='.$build,
+        'MediaBranch='.$branch,
+        'DUScan=1',
         'OEMModel=Largehard Device Model 42069',
         'OEMModelBaseBoard=Largehard Base Board',
         'OEMName_Uncleaned=Largehard Corporation',
@@ -70,9 +76,11 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'OSVersion='.$build,
         'ProcessorIdentifier=Intel64 Family 6 Model 85 Stepping 4',
         'ProcessorManufacturer=GenuineIntel',
+        'SdbVer_20H1=2000000000',
         'SdbVer_19H1=2000000000',
         'TelemetryLevel=3',
         'UpdateManagementGroup=2',
+        'UpgEx_20H1=Green',
         'UpgEx_19H1=Green',
         'UpgEx_RS5=Green',
         'Version_RS5=2000000000',
@@ -229,6 +237,9 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $products[] = "PN=Hammer.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
         $products[] = "PN=MSRT.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
         $products[] = "PN=SedimentPack.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
+        $products[] = "PN=Microsoft.Edge.Stable.$currArch&Repairable=1&V=0.0.0.0";
+        $products[] = "PN=Adobe.Flash.$currArch&Repairable=1&V=$build";
+        $products[] = "PN=Microsoft.NETFX.$currArch&V=2018.12.2.0";
     }
 
     $callerAttrib = array(
