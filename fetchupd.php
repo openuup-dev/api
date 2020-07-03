@@ -108,7 +108,7 @@ function uupFetchUpd(
 
         if($cacheRequests == 1) {
             $cache = array(
-                'expires' => time()+90,
+                'expires' => time()+120,
                 'content' => $out,
             );
 
