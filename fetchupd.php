@@ -56,11 +56,11 @@ function uupFetchUpd(
         return array('error' => 'UNKNOWN_ARCH');
     }
 
-    if(!($ring == 'WIF' || $ring == 'WIS' || $ring == 'RP' || $ring == 'RETAIL' || $ring == 'MSIT')) {
+    if(!($ring == 'DEV' || $ring == 'BETA' || $ring == 'RELEASEPREVIEW' || $ring == 'WIF' || $ring == 'WIS' || $ring == 'RP' || $ring == 'RETAIL' || $ring == 'MSIT')) {
         return array('error' => 'UNKNOWN_RING');
     }
 
-    if(!($flight == 'Skip' || $flight == 'Active')) {
+    if(!($flight == 'Mainline' || $flight == 'Active' || $flight == 'Skip')) {
         return array('error' => 'UNKNOWN_FLIGHT');
     }
 
@@ -305,8 +305,8 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
 
         $temp = array();
         $temp['title'] = $updateTitle;
-        $temp['ring'] = $ring;
-        $temp['flight'] = $flight;
+        $temp['channel'] = $ring;
+        $temp['content'] = $flight;
         $temp['arch'] = $foundArch;
         $temp['build'] = $foundBuild;
         $temp['checkBuild'] = $build;
