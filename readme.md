@@ -7,13 +7,15 @@ Fetches latest update information from Windows Update servers.
 
 Parameters:
  - `arch` - Architecture of build to find
-   - **Supported values:** `amd64`, `arm64`, `x86`
+   - **Supported values:** `amd64`, `x86`, `arm64`, `all`
 
- - `ring` - Ring to use when fetching information
-   - **Supported values:** `WIF`, `WIS`, `RP`, `RETAIL`
+ - `ring` - Channel to use when fetching information (Previously called Ring)
+   - **Supported values:** `Dev`, `Beta`, `ReleasePreview`, `Retail`
+   - **Supported Ring values :** `WIF`, `WIS`, `RP`
 
- - `flight` - Flight to use when fetching information
-   - **Supported values:** `Active`, `Skip`, `Current`
+ - `flight` - Content type to use when fetching information (Previously called Flight)
+   - **Supported values:** `Mainline`
+   - **Supported Flight values:** `Active`, `Skip`, `Current`
    - **NOTE:** `Skip` is for `WIF` ring only. `Current` is for `RP` ring only.
 
  - `build` - Build number to use when fetching information
