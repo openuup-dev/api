@@ -33,7 +33,7 @@ function uupFetchUpd(
     $arch = strtolower($arch);
     $ring = strtoupper($ring);
     $flight = ucwords(strtolower($flight));
-    if($flight == 'Current') $flight = 'Active';
+    $flight = 'Active';
 
     if($build == 'latest' || (!$build)) {
         $builds = array('17134.1');
@@ -56,11 +56,11 @@ function uupFetchUpd(
         return array('error' => 'UNKNOWN_ARCH');
     }
 
-    if(!($ring == 'WIF' || $ring == 'WIS' || $ring == 'RP' || $ring == 'RETAIL' || $ring == 'MSIT')) {
+    if(!($ring == 'DEV' || $ring == 'BETA' || $ring == 'RELEASEPREVIEW' || $ring == 'WIF' || $ring == 'WIS' || $ring == 'RP' || $ring == 'RETAIL' || $ring == 'MSIT')) {
         return array('error' => 'UNKNOWN_RING');
     }
 
-    if(!($flight == 'Skip' || $flight == 'Active')) {
+    if(!($flight == 'Mainline' || $flight == 'Active' || $flight == 'Skip')) {
         return array('error' => 'UNKNOWN_FLIGHT');
     }
 
@@ -75,6 +75,10 @@ function uupFetchUpd(
     if($minor < 0 || $minor > PHP_INT_MAX-1) {
         return array('error' => 'ILLEGAL_MINOR');
     }
+
+    if($ring == 'DEV') $ring = 'WIF';
+    if($ring == 'BETA') $ring = 'WIS';
+    if($ring == 'RELEASEPREVIEW') $ring = 'RP';
 
     if($flight == 'Active' && $ring == 'RP') $flight = 'Current';
 

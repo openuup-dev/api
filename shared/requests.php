@@ -26,18 +26,50 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         $arch = $arch[0];
     }
 
+    if($sku == 125 || $sku == 126 || $sku == 7 || $sku == 8 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 168)
+        $blockUpgrades = 1;
+
+    $fltContent = 'Mainline';
+    $fltRing = 'External';
+
     if($ring == 'RETAIL') {
+        $fltBranch = '';
+        $fltContent = '';
+        $fltRing = 'Retail';
         $flightEnabled = 0;
         $isRetail = 1;
     }
 
-    if($sku == 125 || $sku == 126)
-        $blockUpgrades = 1;
+    if($ring == 'WIF') {
+        $fltBranch = 'Dev';
+    }
+
+    if($ring == 'WIS') {
+        $fltBranch = 'Beta';
+    }
+
+    if($ring == 'RP') {
+        $fltBranch = 'ReleasePreview';
+    }
+
+    if($ring == 'MSIT') {
+        $fltBranch = 'MSIT';
+        $fltRing = 'Internal';
+    }
+
+    $bldnum = explode('.', $build);
+    $bldnum = $bldnum[2];
+
+    if($bldnum < 17763) {
+        $fltBranch = 'external';
+        $fltContent = $flight;
+        $fltRing = $ring;
+    }
 
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=96',
+        'AttrDataVer=99',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
@@ -48,9 +80,9 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'DeviceFamily=Windows.Desktop',
         'EKB19H2InstallCount=1',
         'EKB19H2InstallTimeEpoch=1255000000',
-        'FlightContent='.$flight,
-        'FlightRing='.$ring,
-        'FlightingBranchName=external',
+        'FlightingBranchName='.$fltBranch,
+        'FlightContent='.$fltContent,
+        'FlightRing='.$fltRing,
         'Free=32to64',
         'GStatus_20H1=2',
         'GStatus_20H1Setup=2',
@@ -121,6 +153,10 @@ function branchFromBuild($build) {
             break;
 
         case 19041:
+            $branch = 'vb_release';
+            break;
+
+        case 19042: //19042 is a fake build based on 19041
             $branch = 'vb_release';
             break;
 
@@ -206,7 +242,7 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
 
     $branch = branchFromBuild($build);
 
-    if($sku == 7 || $sku == 8) {
+    if($sku == 7 || $sku == 8 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 168) {
         $mainProduct = 'Server.OS';
     } else {
         $mainProduct = 'Client.OS.rs2';
