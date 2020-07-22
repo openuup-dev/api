@@ -26,7 +26,7 @@ function uupListLangs($updateId = 0) {
 
     if(isset($info['info'])) {
         $info = $info['info'];
-        unset($info['files'])
+        unset($info['files']);
     }
 
     if(isset($info['build'])) {
