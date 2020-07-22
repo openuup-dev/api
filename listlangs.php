@@ -57,10 +57,19 @@ function uupListLangs($updateId = 0) {
         $langList[] = $key;
         $langListFancy[$key] = $fancyName;
     }
-
-    return array(
-        'apiVersion' => uupApiVersion(),
-        'langList' => $langList,
-        'langFancyNames' => $langListFancy,
-    );
+   
+    if(isset($info)) {
+        return array(
+            'apiVersion' => uupApiVersion(),
+            'langList' => $langList,
+            'langFancyNames' => $langListFancy,
+            'updateInfo' => $info
+        );
+    } else {
+        return array(
+            'apiVersion' => uupApiVersion(),
+            'langList' => $langList,
+            'langFancyNames' => $langListFancy
+        );
+    }
 }
