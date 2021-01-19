@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2019 whatever127
+Copyright 2021 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -149,6 +149,11 @@ function uupGetFiles(
 
     $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($files));
     foreach($baseless as $val) {
+        if(isset($files[$val])) unset($files[$val]);
+    }
+
+    $diffs = preg_grep('/.*_Diffs_.*/i', array_keys($files));
+    foreach($diffs as $val) {
         if(isset($files[$val])) unset($files[$val]);
     }
 

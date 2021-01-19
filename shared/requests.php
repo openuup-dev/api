@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2020 whatever127
+Copyright 2021 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
 
     $fltContent = 'Mainline';
     $fltRing = 'External';
+    $flight = 'Active';
 
     if($ring == 'RETAIL') {
         $fltBranch = '';
@@ -52,6 +53,21 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         $fltBranch = 'ReleasePreview';
     }
 
+    if($ring == 'DEV') {
+        $fltBranch = 'Dev';
+        $ring = 'WIF';
+    }
+
+    if($ring == 'BETA') {
+        $fltBranch = 'Beta';
+        $ring = 'WIS';
+    }
+
+    if($ring == 'RELEASEPREVIEW') {
+        $fltBranch = 'ReleasePreview';
+        $ring = 'RP';
+    }
+
     if($ring == 'MSIT') {
         $fltBranch = 'MSIT';
         $fltRing = 'Internal';
@@ -61,6 +77,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $bldnum = $bldnum[2];
 
     if($bldnum < 17763) {
+        if($ring == 'RP') $flight = 'Current';
         $fltBranch = 'external';
         $fltContent = $flight;
         $fltRing = $ring;
@@ -69,7 +86,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=99',
+        'AttrDataVer=118',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
@@ -108,13 +125,16 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'OSVersion='.$build,
         'ProcessorIdentifier=Intel64 Family 6 Model 85 Stepping 4',
         'ProcessorManufacturer=GenuineIntel',
+        'ReleaseType=Production',
         'SdbVer_20H1=2000000000',
         'SdbVer_19H1=2000000000',
         'TelemetryLevel=3',
         'UpdateManagementGroup=2',
+        'UpdateOfferedDays=0',
         'UpgEx_20H1=Green',
         'UpgEx_19H1=Green',
         'UpgEx_RS5=Green',
+        'UpgradeEligible=1',
         'Version_RS5=2000000000',
         'WuClientVer='.$build,
     );
@@ -267,6 +287,7 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $products[] = "PN=Windows.Appraiser.$currArch&Repairable=1&V=$build";
         $products[] = "PN=Windows.AppraiserData.$currArch&Repairable=1&V=$build";
         $products[] = "PN=Windows.EmergencyUpdate.$currArch&Repairable=1&V=$build";
+        $products[] = "PN=Windows.FeatureExperiencePack.$currArch&Repairable=1&V=$build";
         $products[] = "PN=Windows.ManagementOOBE.$currArch&IsWindowsManagementOOBE=1&Repairable=1&V=$build";
         $products[] = "PN=Windows.OOBE.$currArch&IsWindowsOOBE=1&Repairable=1&V=$build";
         $products[] = "PN=Windows.UpdateStackPackage.$currArch&Name=Update Stack Package&Repairable=1&V=$build";
@@ -280,9 +301,9 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
 
     $callerAttrib = array(
         'Interactive=1',
+        'IsSeeker=1',
         'Profile=AUv2',
         'SheddingAware=1',
-        'IsSeeker=1',
         'Id=MoUpdateOrchestrator',
     );
 

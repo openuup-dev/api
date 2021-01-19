@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2019 whatever127
+Copyright 2021 whatever127
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -192,6 +192,13 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     $foundType = @strtolower($info[1]);
     $foundArch = @strtolower($info[2]);
     $foundBuild = @$info[3];
+
+    if((!$foundArch)) {
+        preg_match('/ProductReleaseInstalled Name\="(.*?)\.(.*?)" Version\="10\.0\.(.*?)"/', $updateInfo, $info);
+        $foundType = @strtolower($info[1]);
+        $foundArch = @strtolower($info[2]);
+        $foundBuild = @$info[3];
+    }
 
     $updateTitle = preg_grep('/<Title>.*<\/Title>/', $updateMeta);
     sort($updateTitle);
