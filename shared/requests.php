@@ -180,6 +180,10 @@ function branchFromBuild($build) {
             $branch = 'vb_release';
             break;
 
+        case 19043: //19043 is a fake build based on 19041
+            $branch = 'vb_release';
+            break;
+
         default:
             $branch = 'rs_prerelease';
             break;
@@ -287,7 +291,7 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $products[] = "PN=Windows.Appraiser.$currArch&Repairable=1&V=$build";
         $products[] = "PN=Windows.AppraiserData.$currArch&Repairable=1&V=$build";
         $products[] = "PN=Windows.EmergencyUpdate.$currArch&Repairable=1&V=$build";
-        $products[] = "PN=Windows.FeatureExperiencePack.$currArch&Repairable=1&V=$build";
+        $products[] = "PN=Windows.FeatureExperiencePack.$currArch&Repairable=1&V=0.0.0.0";
         $products[] = "PN=Windows.ManagementOOBE.$currArch&IsWindowsManagementOOBE=1&Repairable=1&V=$build";
         $products[] = "PN=Windows.OOBE.$currArch&IsWindowsOOBE=1&Repairable=1&V=$build";
         $products[] = "PN=Windows.UpdateStackPackage.$currArch&Name=Update Stack Package&Repairable=1&V=$build";
