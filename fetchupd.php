@@ -214,15 +214,18 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     }
 
     $isCumulativeUpdate = 0;
-    if(preg_match('/\d{4}-\d{2}.+Update|Cumulative Update/i', $updateTitle)) {
+    if(preg_match('/\d{4}-\d{2}.+Update|Cumulative Update|Microsoft Edge|Windows Feature Experience Pack/i', $updateTitle)) {
         $isCumulativeUpdate = 1;
         $updateTitle = preg_replace('/ for .{3,5}-based systems| \(KB.*?\)/i', '', $updateTitle);
     }
 
-    $updateTitle = preg_replace("/ ?\d{4}-\d{2}\w* ?| ?$foundArch ?| ?x64 ?/i", '', $updateTitle);
+    $updateTitle = preg_replace("/ ?\d{4}-\d{2}\D ?| ?$foundArch ?| ?x64 ?/i", '', $updateTitle);
 
     if($foundType == 'server')
         $updateTitle = str_replace('Windows 10', 'Windows Server', $updateTitle);
+
+    if($foundType == 'sedimentpack')
+        $updateTitle = $updateTitle.' - KB4023057';
 
     if(!preg_match("/$foundBuild/i", $updateTitle))
         $updateTitle = $updateTitle.' ('.$foundBuild.')';
@@ -292,12 +295,13 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         $shaArray = array();
 
         foreach($fileList[0] as $val) {
+            preg_match('/FileName=".*?"/', $val, $name);
+            $name = preg_replace('/FileName="|"$/', '', $name[0]);
+            if(preg_match('/.*_Diffs_.*|.*_Forward_CompDB_.*|\.cbsu\.cab$/i', $name)) continue;
+
             preg_match('/Digest=".*?"/', $val, $sha1);
             $sha1 = preg_replace('/Digest="|"$/', '', $sha1[0]);
             $sha1 = bin2hex(base64_decode($sha1));
-
-            preg_match('/FileName=".*?"/', $val, $name);
-            $name = preg_replace('/FileName="|"$/', '', $name[0]);
 
             preg_match('/Size=".*?"/', $val, $size);
             $size = preg_replace('/Size="|"$/', '', $size[0]);

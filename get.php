@@ -152,7 +152,7 @@ function uupGetFiles(
         if(isset($files[$val])) unset($files[$val]);
     }
 
-    $diffs = preg_grep('/.*_Diffs_.*/i', array_keys($files));
+    $diffs = preg_grep('/.*_Diffs_.*|.*_Forward_CompDB_.*|\.cbsu\.cab$/i', array_keys($files));
     foreach($diffs as $val) {
         if(isset($files[$val])) unset($files[$val]);
     }
@@ -168,7 +168,7 @@ function uupGetFiles(
     }
     unset($index, $name, $psf);
 
-    $temp = preg_grep('/'.$updateArch.'_.*|arm64.arm_.*/i', $removeFiles);
+    $temp = preg_grep('/'.$updateArch.'_.*|arm64\.arm_.*|arm64\.x86_.*/i', $removeFiles);
     foreach($temp as $key => $val) {
         if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
         unset($removeFiles[$key]);
