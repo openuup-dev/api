@@ -295,13 +295,12 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         $shaArray = array();
 
         foreach($fileList[0] as $val) {
-            preg_match('/FileName=".*?"/', $val, $name);
-            $name = preg_replace('/FileName="|"$/', '', $name[0]);
-            if(preg_match('/.*_Diffs_.*|.*_Forward_CompDB_.*|\.cbsu\.cab$/i', $name)) continue;
-
             preg_match('/Digest=".*?"/', $val, $sha1);
             $sha1 = preg_replace('/Digest="|"$/', '', $sha1[0]);
             $sha1 = bin2hex(base64_decode($sha1));
+
+            preg_match('/FileName=".*?"/', $val, $name);
+            $name = preg_replace('/FileName="|"$/', '', $name[0]);
 
             preg_match('/Size=".*?"/', $val, $size);
             $size = preg_replace('/Size="|"$/', '', $size[0]);
