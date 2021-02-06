@@ -26,6 +26,7 @@ function uupFetchUpd(
     $build = 'latest',
     $minor = '0',
     $sku = '48',
+    $type = 'Production',
     $cacheRequests = 0
 ) {
     uupApiPrintBrand();
@@ -84,7 +85,12 @@ function uupFetchUpd(
 
     $build = '10.0.'.$build.'.'.$minor;
 
-    $cacheHash = hash('sha256', strtolower("api-fetch-$arch-$ring-$flight-$build-$minor-$sku"));
+    $type = ucwords(strtolower($type));
+    if(!($type == 'Production' || $type == 'Test')) {
+        $type = 'Production';
+    }
+
+    $cacheHash = hash('sha256', strtolower("api-fetch-$arch-$ring-$flight-$build-$minor-$sku-$type"));
     $cached = 0;
 
     if(file_exists('cache/'.$cacheHash.'.json.gz') && $cacheRequests == 1) {
@@ -104,7 +110,7 @@ function uupFetchUpd(
 
     if(!$cached) {
         consoleLogger('Fetching information from the server...');
-        $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build, $sku);
+        $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build, $sku, $type);
         $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
 
         $out = html_entity_decode($out);
@@ -141,7 +147,7 @@ function uupFetchUpd(
         $num++;
         consoleLogger("Checking build information for update {$num} of {$updatesNum}...");
 
-        $info = parseFetchUpdate($val, $out, $arch, $ring, $flight, $build, $sku);
+        $info = parseFetchUpdate($val, $out, $arch, $ring, $flight, $build, $sku, $type);
         if(isset($info['error'])) {
             $errorCount++;
             continue;
@@ -165,7 +171,7 @@ function uupFetchUpd(
     );
 }
 
-function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku) {
+function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku, $type) {
     $updateNumId = preg_replace('/<UpdateInfo><ID>|<\/ID>.*/i', '', $updateInfo);
 
     $updates = preg_replace('/<Update>/', "\n<Update>", $out);
@@ -193,7 +199,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     $foundArch = @strtolower($info[2]);
     $foundBuild = @$info[3];
 
-    if((!$foundArch)) {
+    if(!isset($foundArch) || empty($foundArch)) {
         preg_match('/ProductReleaseInstalled Name\="(.*?)\.(.*?)" Version\="10\.0\.(.*?)"/', $updateInfo, $info);
         $foundType = @strtolower($info[1]);
         $foundArch = @strtolower($info[2]);
@@ -213,6 +219,9 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         $updateTitle = 'Windows 10 build '.$foundBuild;
     }
 
+    if($foundType == 'hololens' || $foundType == 'wcosdevice0')
+        $updateTitle = preg_replace('/ for .{3,5}-based/i', ' for', $updateTitle);
+
     $isCumulativeUpdate = 0;
     if(preg_match('/\d{4}-\d{2}.+Update|Cumulative Update|Microsoft Edge|Windows Feature Experience Pack/i', $updateTitle)) {
         $isCumulativeUpdate = 1;
@@ -226,6 +235,9 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
 
     if($foundType == 'sedimentpack')
         $updateTitle = $updateTitle.' - KB4023057';
+
+    if($foundType == 'hololens' || $foundType == 'wcosdevice0')
+        $updateTitle = $updateTitle.' - '.$type;
 
     if(!preg_match("/$foundBuild/i", $updateTitle))
         $updateTitle = $updateTitle.' ('.$foundBuild.')';
@@ -328,6 +340,10 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
 
         if($isCumulativeUpdate) {
             $temp['containsCU'] = 1;
+        }
+
+        if($foundType == 'hololens' || $foundType == 'wcosdevice0') {
+            $temp['releasetype'] = $type;
         }
 
         $temp['created'] = time();

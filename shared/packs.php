@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2019 UUP dump API authors
+Copyright 2021 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -72,6 +72,8 @@ function uupGetInfoTexts() {
         'EDUCATIONN' => 'Windows 10 Education N',
         'ENTERPRISE' => 'Windows 10 Enterprise',
         'ENTERPRISEN' => 'Windows 10 Enterprise N',
+        'HOLOGRAPHIC' => 'Windows Holographic',
+        'LITE' => 'Windows 10X',
         'PPIPRO' => 'Windows 10 Team',
         'PROFESSIONAL' => 'Windows 10 Pro',
         'PROFESSIONALN' => 'Windows 10 Pro N',
@@ -82,6 +84,7 @@ function uupGetInfoTexts() {
         'ANDROMEDA',
         'CLOUD',
         'CLOUDE',
+        'CLOUDEN',
         'CLOUDN',
         'CORE',
         'CORECOUNTRYSPECIFIC',
@@ -104,7 +107,13 @@ function uupGetInfoTexts() {
         'ENTERPRISESEVAL',
         'ENTERPRISESN',
         'ENTERPRISESNEVAL',
+        'HOLOGRAPHIC',
+        'HUBOS',
+        'IOTENTERPRISE',
+        'IOTENTERPRISES',
+        'IOTOS',
         'IOTUAP',
+        'LITE',
         'MOBILECORE',
         'ONECOREUPDATEOS',
         'PPIPRO',
@@ -161,6 +170,9 @@ function uupGetInfoTexts() {
         'SERVERSTORAGEWORKGROUPCORE',
         'SERVERSTORAGEWORKGROUPEVAL',
         'SERVERSTORAGEWORKGROUPEVALCORE',
+        'SERVERAZURESTACKHCICOR',
+        'SERVERTURBINE',
+        'SERVERTURBINECOR',
         'SERVERWEB',
         'SERVERWEBCORE',
         'STARTER',
