@@ -2,7 +2,7 @@ UUP dump API
 ------------
 
 ### Functions
-#### fetchupd.php: `uupFetchUpd($arch, $ring, $flight, $build, $minor, $sku, $cacheRequests);`
+#### fetchupd.php: `uupFetchUpd($arch, $ring, $flight, $build, $minor, $sku, $type, $cacheRequests);`
 Fetches latest update information from Windows Update servers.
 
 Parameters:
@@ -26,6 +26,9 @@ Parameters:
 
  - `sku` - SKU number to use when fetching information
    - **Supported values:** Any integer
+
+ - `type` - Release type to use when fetching information for Windows Core OS (WCOS), e.g. Windows 10X
+   - **Supported values:** `Production`, `Test`
 
  - `cacheRequests` - Should request responses be cached? (optional)
    - **Supported values:** 0 = Disable (default), 1 = Enable

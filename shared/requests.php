@@ -16,7 +16,7 @@ limitations under the License.
 */
 
 // Composes DeviceAttributes parameter needed to fetch data
-function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
+function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     $branch = branchFromBuild($build);
     $blockUpgrades = 0;
     $flightEnabled = 1;
@@ -29,13 +29,33 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     if($sku == 125 || $sku == 126 || $sku == 7 || $sku == 8 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 168)
         $blockUpgrades = 1;
 
+    $dvcFamily = 'Windows.Desktop';
+    $insType = 'Client';
+    if($sku == 119) {
+        $dvcFamily = 'Windows.Team';
+    }
+    if($sku == 7 || $sku == 8 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 168) {
+        $dvcFamily = 'Windows.Server';
+        $insType = 'Server';
+    }
+    /*/ Hololens
+    if($sku == 135) {
+        $dvcFamily = 'Windows.Holographic';
+        $insType = 'FactoryOS';
+    }*/
+    // HubOS Andromeda Lite
+    if($sku == 180 || $sku == 184 || $sku == 189) {
+        $dvcFamily = 'Windows.Core';
+        $insType = 'FactoryOS';
+    }
+
     $fltContent = 'Mainline';
     $fltRing = 'External';
     $flight = 'Active';
 
     if($ring == 'RETAIL') {
         $fltBranch = '';
-        $fltContent = '';
+        $fltContent = $flight;
         $fltRing = 'Retail';
         $flightEnabled = 0;
         $isRetail = 1;
@@ -86,7 +106,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=118',
+        'AttrDataVer=120',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
@@ -94,9 +114,13 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'DataExpDateEpoch_19H1='.(time()+82800),
         'DataVer_RS5=2000000000',
         'DefaultUserRegion=191',
-        'DeviceFamily=Windows.Desktop',
+        'DeviceFamily='.$dvcFamily,
         'EKB19H2InstallCount=1',
         'EKB19H2InstallTimeEpoch=1255000000',
+        'EKB20H2InstallCount=1',
+        'EKB20H2InstallTimeEpoch=1255000000',
+        'EKB21H1InstallCount=1',
+        'EKB21H1InstallTimeEpoch=1255000000',
         'FlightingBranchName='.$fltBranch,
         'FlightContent='.$fltContent,
         'FlightRing='.$fltRing,
@@ -109,12 +133,13 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'GenTelRunTimestamp_19H1='.(time()-3600),
         'InstallDate=1438196400',
         'InstallLanguage=en-US',
-        'InstallationType=Client',
+        'InstallationType='.$insType,
         'IsDeviceRetailDemo=0',
         'IsFlightingEnabled='.$flightEnabled,
         'IsRetailOS='.$isRetail,
+        'MediaBranch=',
         'MediaVersion='.$build,
-        'MediaBranch='.$branch,
+        'CloudPBR=1',
         'DUScan=1',
         'OEMModel=Largehard Device Model 42069',
         'OEMModelBaseBoard=Largehard Base Board',
@@ -125,7 +150,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku) {
         'OSVersion='.$build,
         'ProcessorIdentifier=Intel64 Family 6 Model 85 Stepping 4',
         'ProcessorManufacturer=GenuineIntel',
-        'ReleaseType=Production',
+        'ReleaseType='.$type,
         'SdbVer_20H1=2000000000',
         'SdbVer_19H1=2000000000',
         'TelemetryLevel=3',
@@ -184,6 +209,10 @@ function branchFromBuild($build) {
             $branch = 'vb_release';
             break;
 
+        case 20279:
+            $branch = 'fe_release_10x';
+            break;
+
         default:
             $branch = 'rs_prerelease';
             break;
@@ -193,7 +222,7 @@ function branchFromBuild($build) {
 }
 
 // Composes POST data for gathering list of urls for download
-function composeFileGetRequest($updateId, $device, $info, $rev = 1) {
+function composeFileGetRequest($updateId, $device, $info, $rev = 1, $type = 'Production') {
     $uuid = genUUID();
 
     $createdTime = time();
@@ -202,14 +231,15 @@ function composeFileGetRequest($updateId, $device, $info, $rev = 1) {
     $created = gmdate(DATE_W3C, $createdTime);
     $expires = gmdate(DATE_W3C, $expiresTime);
 
-    $branch = branchFromBuild($info['checkBuild']);
+    //$branch = branchFromBuild($info['checkBuild']);
 
     $deviceAttributes = composeDeviceAttributes(
         $info['flight'],
         $info['ring'],
         $info['checkBuild'],
         $info['arch'],
-        $info['sku']
+        $info['sku'],
+        $type
     );
 
     return <<<XML
@@ -253,7 +283,7 @@ XML;
 }
 
 // Composes POST data for fetching the latest update information from Windows Update
-function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build, $sku = 48) {
+function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build, $sku = 48, $type = 'Production') {
     $uuid = genUUID();
 
     $createdTime = time();
@@ -266,10 +296,25 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
 
     $branch = branchFromBuild($build);
 
+    $mainProduct = 'Client.OS.rs2';
     if($sku == 7 || $sku == 8 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 168) {
         $mainProduct = 'Server.OS';
-    } else {
-        $mainProduct = 'Client.OS.rs2';
+    }
+    /*/ Hololens
+    if($sku == 135) {
+        $mainProduct = 'HoloLens.OS.RS2';
+    }*/
+    // HubOS
+    if($sku == 180) {
+        $mainProduct = 'WCOSDevice2.OS';
+    }
+    // Andromeda
+    if($sku == 184) {
+        $mainProduct = 'WCOSDevice1.OS';
+    }
+    // Lite
+    if($sku == 189) {
+        $mainProduct = 'WCOSDevice0.OS';
     }
 
     if($arch == 'all') {
@@ -319,7 +364,8 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $ring,
         $build,
         $arch,
-        $sku
+        $sku,
+        $type
     );
 
     return <<<XML

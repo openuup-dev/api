@@ -88,15 +88,15 @@ function uupGetFiles(
                 if($usePack) {
                     $fileListSource = 'GENERATEDPACKS';
 
-                    $filesList = array();
+                    $filesPacksList = array();
                     foreach($genPack[$usePack] as $val) {
                         foreach($val as $package) {
-                            $filesList[] = $package;
+                            $filesPacksList[] = $package;
                         }
                     }
 
-                    array_unique($filesList);
-                    sort($filesList);
+                    array_unique($filesPacksList);
+                    sort($filesPacksList);
                 }
                 break;
 
@@ -109,13 +109,13 @@ function uupGetFiles(
                     return array('error' => 'UNSUPPORTED_COMBINATION');
                 }
 
-                $filesList = $genPack[$usePack][$desiredEdition];
+                $filesPacksList = $genPack[$usePack][$desiredEdition];
                 $fileListSource = 'GENERATEDPACKS';
                 break;
         }
     } else {
         $fileListSource = 'GENERATEDPACKS';
-        $filesList = array();
+        $filesPacksList = array();
         foreach($desiredEdition as $edition) {
             $edition = strtoupper($edition);
 
@@ -123,7 +123,7 @@ function uupGetFiles(
                 return array('error' => 'UNSUPPORTED_COMBINATION');
             }
 
-            $filesList = array_merge($filesList, $genPack[$usePack][$edition]);
+            $filesPacksList = array_merge($filesPacksList, $genPack[$usePack][$edition]);
         }
     }
 
@@ -133,102 +133,117 @@ function uupGetFiles(
         $updateId = preg_replace('/_rev\..*/', '', $updateId);
     }
 
+    $updateSku = $info['sku'];
     $updateArch = (isset($info['arch'])) ? $info['arch'] : 'UNKNOWN';
     $updateBuild = (isset($info['build'])) ? $info['build'] : 'UNKNOWN';
     $updateName = (isset($info['title'])) ? $info['title'] : 'Unknown update: '.$updateId;
 
+    if(isset($info['releasetype'])) {
+        $type = $info['releasetype'];
+    }
+    if(!isset($type)) {
+        $type = 'Production';
+        if($updateSku == 189 || $updateSku == 135) foreach($info['files'] as $val) {
+            if(preg_match('/NonProductionFM/i', $val['name'])) $type = 'Test';
+        }
+    }
+
     if($requestType < 2) {
-        $files = uupGetOnlineFiles($updateId, $rev, $info, $requestType);
+        $filesInfoList = uupGetOnlineFiles($updateId, $rev, $info, $requestType, $type);
     } else {
-        $files = uupGetOfflineFiles($info);
+        $filesInfoList = uupGetOfflineFiles($info);
     }
 
-    if(isset($files['error'])) {
-        return $files;
+    if(isset($filesInfoList['error'])) {
+        return $filesInfoList;
     }
 
-    $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($files));
+    $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($filesInfoList));
     foreach($baseless as $val) {
-        if(isset($files[$val])) unset($files[$val]);
+        if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
     }
 
-    $diffs = preg_grep('/.*_Diffs_.*|.*_Forward_CompDB_.*|\.cbsu\.cab$/i', array_keys($files));
+    $diffs = preg_grep('/.*_Diffs_.*|.*_Forward_CompDB_.*|\.cbsu\.cab$/i', array_keys($filesInfoList));
     foreach($diffs as $val) {
-        if(isset($files[$val])) unset($files[$val]);
+        if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
     }
 
-    $psf = array_keys($files);
+    $psf = array_keys($filesInfoList);
     $psf = preg_grep('/\.psf$/i', $psf);
 
     $removeFiles = array();
     foreach($psf as $val) {
         $name = preg_replace('/\.psf$/i', '', $val);
         $removeFiles[] = $name;
-        unset($files[$val]);
+        unset($filesInfoList[$val]);
     }
     unset($index, $name, $psf);
 
     $temp = preg_grep('/'.$updateArch.'_.*|arm64\.arm_.*|arm64\.x86_.*/i', $removeFiles);
     foreach($temp as $key => $val) {
-        if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+        if(isset($filesInfoList[$val.'.cab'])) unset($filesInfoList[$val.'.cab']);
         unset($removeFiles[$key]);
     }
     unset($temp);
 
     foreach($removeFiles as $val) {
-        if(isset($files[$val.'.esd'])) {
-            if(isset($files[$val.'.cab'])) unset($files[$val.'.cab']);
+        if(isset($filesInfoList[$val.'.esd'])) {
+            if(isset($filesInfoList[$val.'.cab'])) unset($filesInfoList[$val.'.cab']);
         }
     }
     unset($removeFiles);
 
-    $filesKeys = array_keys($files);
+    $filesInfoKeys = array_keys($filesInfoList);
 
     switch($fileListSource) {
         case 'UPDATEONLY':
             $skipPackBuild = 1;
-            $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys);
+            $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesInfoKeys);
 
             foreach($removeFiles as $val) {
-                if(isset($files[$val])) unset($files[$val]);
+                if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
             }
+            unset($removeFiles);
 
-            unset($removeFiles, $temp);
-            $filesKeys = array_keys($files);
+            $filesInfoKeys = array_keys($filesInfoList);
 
-            $filesKeys = preg_grep('/Windows10\.0-KB/i', $filesKeys);
-            if(count($filesKeys) == 0) {
+            $filesInfoKeys = preg_grep('/Windows10\.0-KB/i', $filesInfoKeys);
+            if(count($filesInfoKeys) == 0) {
                 return array('error' => 'NOT_CUMULATIVE_UPDATE');
             }
             break;
 
         case 'WUBFILE':
             $skipPackBuild = 1;
-            $filesKeys = preg_grep('/WindowsUpdateBox.exe/i', $filesKeys);
+            $filesInfoKeys = preg_grep('/WindowsUpdateBox.exe/i', $filesInfoKeys);
             break;
     }
 
+    $uupCleanFunc = 'uupCleanName';
+    if($updateSku == 189) $uupCleanFunc = 'uupCleanWCOS';
+    if($updateSku == 135) $uupCleanFunc = 'uupCleanHolo';
+
     if($fileListSource == 'GENERATEDPACKS') {
-        $temp = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesKeys, PREG_GREP_INVERT);
+        $temp = preg_grep('/Windows10\.0-KB.*-EXPRESS/i', $filesInfoKeys, PREG_GREP_INVERT);
         $temp = preg_grep('/Windows10\.0-KB/i', $temp);
-        $filesList = array_merge($filesList, $temp);
+        $filesPacksList = array_merge($filesPacksList, $temp);
 
         $newFiles = array();
-        foreach($filesList as $val) {
-            $name = uupCleanName($val);
-            $filesListKeys[] = $name;
+        foreach($filesPacksList as $val) {
+            $name = $uupCleanFunc($val);
+            $filesPacksKeys[] = $name;
 
-            if(isset($files[$name])) {
-                $newFiles[$name] = $files[$name];
+            if(isset($filesInfoList[$name])) {
+                $newFiles[$name] = $filesInfoList[$name];
             }
         }
 
-        $files = $newFiles;
-        $filesKeys = array_keys($files);
+        $filesInfoList = $newFiles;
+        $filesInfoKeys = array_keys($filesInfoList);
 
-        $filesListKeys = array_unique($filesListKeys);
-        sort($filesListKeys);
-        $compare = array_diff($filesListKeys, $filesKeys);
+        $filesPacksKeys = array_unique($filesPacksKeys);
+        sort($filesPacksKeys);
+        $compare = array_diff($filesPacksKeys, $filesInfoKeys);
 
         if(count($compare)) {
             foreach($compare as $val) {
@@ -238,12 +253,13 @@ function uupGetFiles(
         }
     }
 
-    if(empty($filesKeys)) {
+    if(empty($filesInfoKeys)) {
         return array('error' => 'NO_FILES');
     }
 
-    foreach($filesKeys as $val) {
-       $filesNew[$val] = $files[$val];
+    $filesNew = array();
+    foreach($filesInfoKeys as $val) {
+       $filesNew[$val] = $filesInfoList[$val];
     }
 
     $files = $filesNew;
@@ -256,11 +272,12 @@ function uupGetFiles(
         'updateName' => $updateName,
         'arch' => $updateArch,
         'build' => $updateBuild,
+        'sku' => $updateSku,
         'files' => $files,
     );
 }
 
-function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
+function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
     $cacheHash = hash('sha256', strtolower("api-get-${updateId}_rev.$rev"));
     $cached = 0;
 
@@ -283,7 +300,7 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
     if(!$cached) {
         $fetchTime = time();
         consoleLogger('Fetching information from the server...');
-        $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev);
+        $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev, $type);
         $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
         consoleLogger('Information has been successfully fetched.');
     }
@@ -310,6 +327,10 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
         return array('error' => 'EMPTY_FILELIST');
     }
 
+    $uupCleanFunc = 'uupCleanName';
+    if($info['sku'] == 189) $uupCleanFunc = 'uupCleanWCOS';
+    if($info['sku'] == 135) $uupCleanFunc = 'uupCleanHolo';
+
     $fileLocations = $getResult->FileLocations;
     $info = $info['files'];
 
@@ -323,13 +344,9 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
 
         if(empty($info[$sha1]['name'])) {
             $name = $guid;
-        } else {
-            $name = $info[$sha1]['name'];
-        }
-
-        if(empty($info[$sha1]['name'])) {
             $size = -1;
         } else {
+            $name = $info[$sha1]['name'];
             $size = $info[$sha1]['size'];
         }
 
@@ -360,7 +377,7 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
             $temp['expire'] = $expire;
             $temp['debug'] = $val->asXML();
 
-            $newName = uupCleanName($name);
+            $newName = $uupCleanFunc($name);
             $files[$newName] = $temp;
         }
     }
@@ -382,6 +399,10 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests) {
 function uupGetOfflineFiles($info) {
     if(empty($info['files'])) return array();
 
+    $uupCleanFunc = 'uupCleanName';
+    if($info['sku'] == 189) $uupCleanFunc = 'uupCleanWCOS';
+    if($info['sku'] == 135) $uupCleanFunc = 'uupCleanHolo';
+
     consoleLogger('Parsing information...');
     foreach($info['files'] as $sha1 => $val) {
         $name = $val['name'];
@@ -399,7 +420,7 @@ function uupGetOfflineFiles($info) {
             $temp['expire'] = 0;
             $temp['debug'] = null;
 
-            $newName = uupCleanName($name);
+            $newName = $uupCleanFunc($name);
             $files[$newName] = $temp;
         }
     }
@@ -420,4 +441,17 @@ function uupCleanName($name) {
 
     $name = strtr($name, 'QWERTYUIOPASDFGHJKLZXCVBNM', 'qwertyuiopasdfghjklzxcvbnm');
     return strtr($name, $replace);
+}
+
+function uupCleanWCOS($name) {
+    $name = preg_replace('/^(appx)_(messaging_desktop|.*?)_/i', '$1/$2/', $name);
+    $name = preg_replace('/^(retail)_(.{3,5})_fre_/i', '$1/$2/fre/', $name);
+    return strtr($name, 'QWERTYUIOPASDFGHJKLZXCVBNM', 'qwertyuiopasdfghjklzxcvbnm');
+}
+
+function uupCleanHolo($name) {
+    $name = preg_replace('/^(appx)_(Cortana_WCOS|FeedbackHub_WCOS|HEVCExtension_HoloLens|MixedRealityViewer_arm64|MoviesTV_Hololens|Outlook_WindowsTeam|WinStore_HoloLens)_/i', '$1/$2/', $name);
+    $name = preg_replace('/^(appx)_(.*?)_/i', '$1/$2/', $name);
+    $name = preg_replace('/^(retail)_(.{3,5})_fre_/i', '$1/$2/fre/', $name);
+    return strtr($name, 'QWERTYUIOPASDFGHJKLZXCVBNM', 'qwertyuiopasdfghjklzxcvbnm');
 }
