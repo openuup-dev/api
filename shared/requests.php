@@ -26,7 +26,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         $arch = $arch[0];
     }
 
-    if($sku == 125 || $sku == 126 || $sku == 7 || $sku == 8 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 168)
+    if($sku == 125 || $sku == 126 || $sku == 7 || $sku == 8 || $sku == 12 || $sku == 13 || $sku == 79 || $sku == 80 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 147 || $sku == 148 || $sku == 159 || $sku == 160 || $sku == 406 || $sku == 407 || $sku == 408)
         $blockUpgrades = 1;
 
     $dvcFamily = 'Windows.Desktop';
@@ -34,7 +34,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     if($sku == 119) {
         $dvcFamily = 'Windows.Team';
     }
-    if($sku == 7 || $sku == 8 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 168) {
+    if($sku == 7 || $sku == 8 || $sku == 12 || $sku == 13 || $sku == 79 || $sku == 80 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 147 || $sku == 148 || $sku == 159 || $sku == 160 || $sku == 406 || $sku == 407 || $sku == 408) {
         $dvcFamily = 'Windows.Server';
         $insType = 'Server';
     }
@@ -106,10 +106,11 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=120',
+        'AttrDataVer=134',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
+        'DataExpDateEpoch_21H1='.(time()+82800),
         'DataExpDateEpoch_20H1='.(time()+82800),
         'DataExpDateEpoch_19H1='.(time()+82800),
         'DataVer_RS5=2000000000',
@@ -117,14 +118,12 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'DeviceFamily='.$dvcFamily,
         'EKB19H2InstallCount=1',
         'EKB19H2InstallTimeEpoch=1255000000',
-        'EKB20H2InstallCount=1',
-        'EKB20H2InstallTimeEpoch=1255000000',
-        'EKB21H1InstallCount=1',
-        'EKB21H1InstallTimeEpoch=1255000000',
         'FlightingBranchName='.$fltBranch,
-        'FlightContent='.$fltContent,
+        //'FlightContent='.$fltContent,
         'FlightRing='.$fltRing,
         'Free=32to64',
+        'GStatus_CO21H2=2',
+        'GStatus_21H1=2',
         'GStatus_20H1=2',
         'GStatus_20H1Setup=2',
         'GStatus_19H1=2',
@@ -154,8 +153,13 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'SdbVer_20H1=2000000000',
         'SdbVer_19H1=2000000000',
         'TelemetryLevel=3',
+        'TimestampEpochString_21H1='.(time()-3600),
+        'TimestampEpochString_20H1='.(time()-3600),
+        'TimestampEpochString_19H1='.(time()-3600),
         'UpdateManagementGroup=2',
         'UpdateOfferedDays=0',
+        'UpgEx_CO21H2=Green',
+        'UpgEx_21H1=Green',
         'UpgEx_20H1=Green',
         'UpgEx_19H1=Green',
         'UpgEx_RS5=Green',
@@ -189,11 +193,15 @@ function branchFromBuild($build) {
             $branch = 'rs5_release';
             break;
 
+        case 17784:
+            $branch = 'rs5_release';
+            break;
+
         case 18362:
             $branch = '19h1_release';
             break;
 
-        case 18363: //18363 is a fake build based on 18362
+        case 18363: //a fake build based on 18362
             $branch = '19h1_release';
             break;
 
@@ -201,16 +209,24 @@ function branchFromBuild($build) {
             $branch = 'vb_release';
             break;
 
-        case 19042: //19042 is a fake build based on 19041
+        case 19042: //a fake build based on 19041
             $branch = 'vb_release';
             break;
 
-        case 19043: //19043 is a fake build based on 19041
+        case 19043: //a fake build based on 19041
+            $branch = 'vb_release';
+            break;
+
+        case 19044: //a fake build based on 19041
             $branch = 'vb_release';
             break;
 
         case 20279:
             $branch = 'fe_release_10x';
+            break;
+
+        case 20348:
+            $branch = 'fe_release';
             break;
 
         default:
@@ -297,7 +313,7 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     $branch = branchFromBuild($build);
 
     $mainProduct = 'Client.OS.rs2';
-    if($sku == 7 || $sku == 8 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 168) {
+    if($sku == 7 || $sku == 8 || $sku == 12 || $sku == 13 || $sku == 79 || $sku == 80 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 147 || $sku == 148 || $sku == 159 || $sku == 160 || $sku == 406 || $sku == 407 || $sku == 408) {
         $mainProduct = 'Server.OS';
     }
     /*/ Hololens
@@ -349,9 +365,10 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     }
 
     $callerAttrib = array(
+        'Profile=AUv2',
+        'Acquisition=1',
         'Interactive=1',
         'IsSeeker=1',
-        'Profile=AUv2',
         'SheddingAware=1',
         'Id=MoUpdateOrchestrator',
     );
