@@ -233,6 +233,9 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     if($foundType == 'server')
         $updateTitle = str_replace('Windows 10', 'Windows Server', $updateTitle);
 
+    if($sku == 406)
+        $updateTitle = str_replace('Microsoft server operating system', 'Azure Stack HCI', $updateTitle);
+
     if($foundType == 'sedimentpack')
         $updateTitle = $updateTitle.' - KB4023057';
 

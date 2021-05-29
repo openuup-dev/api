@@ -77,6 +77,16 @@ function uupGetInfoTexts() {
         'PPIPRO' => 'Windows 10 Team',
         'PROFESSIONAL' => 'Windows 10 Pro',
         'PROFESSIONALN' => 'Windows 10 Pro N',
+        'SERVERSTANDARD' => 'Windows Server Standard',
+        'SERVERSTANDARDCORE' => 'Windows Server Standard, Core',
+        'SERVERDATACENTER' => 'Windows Server Datacenter',
+        'SERVERDATACENTERCORE' => 'Windows Server Datacenter, Core',
+        'SERVERAZURESTACKHCICOR' => 'Azure Stack HCI',
+        'SERVERTURBINE' => 'Windows Server Datacenter Azure',
+        'SERVERTURBINECOR' => 'Windows Server Datacenter Azure, Core',
+        'SERVERSTANDARDACOR' => 'Windows Server Standard SAC',
+        'SERVERDATACENTERACOR' => 'Windows Server Datacenter SAC',
+        'SERVERARM64' => 'Windows Server ARM64',
     );
 
     $allEditions = array(
