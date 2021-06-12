@@ -171,6 +171,13 @@ function uupGetFiles(
     $psf = array_keys($filesInfoList);
     $psf = preg_grep('/\.psf$/i', $psf);
 
+    $psfk = preg_grep('/Windows10\.0-KB.*/i', $psf);
+    $psfk = preg_grep('/.*-EXPRESS|.*-baseless/i', $psfk, PREG_GREP_INVERT);
+    if($build > 21380) foreach($psfk as $key => $val) {
+        if(isset($psf[$key])) unset($psf[$key]);
+    }
+    unset($psfk);
+
     $removeFiles = array();
     foreach($psf as $val) {
         $name = preg_replace('/\.psf$/i', '', $val);
