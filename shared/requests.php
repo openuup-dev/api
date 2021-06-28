@@ -106,10 +106,11 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=134',
+        'AttrDataVer=139',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
+        'DataExpDateEpoch_CO21H2='.(time()+82800),
         'DataExpDateEpoch_21H1='.(time()+82800),
         'DataExpDateEpoch_20H1='.(time()+82800),
         'DataExpDateEpoch_19H1='.(time()+82800),
@@ -152,10 +153,13 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'ReleaseType='.$type,
         'SdbVer_20H1=2000000000',
         'SdbVer_19H1=2000000000',
+        'SecureBootCapable=1',
         'TelemetryLevel=3',
+        'TimestampEpochString_CO21H2='.(time()-3600),
         'TimestampEpochString_21H1='.(time()-3600),
         'TimestampEpochString_20H1='.(time()-3600),
         'TimestampEpochString_19H1='.(time()-3600),
+        'TPMVersion=2',
         'UpdateManagementGroup=2',
         'UpdateOfferedDays=0',
         'UpgEx_CO21H2=Green',
@@ -194,7 +198,7 @@ function branchFromBuild($build) {
             break;
 
         case 17784:
-            $branch = 'rs5_release';
+            $branch = 'rs5_release_svc_hci';
             break;
 
         case 18362:
@@ -227,6 +231,10 @@ function branchFromBuild($build) {
 
         case 20348:
             $branch = 'fe_release';
+            break;
+
+        case 22000:
+            $branch = 'co_release';
             break;
 
         default:
