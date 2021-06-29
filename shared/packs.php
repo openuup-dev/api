@@ -64,6 +64,8 @@ function uupGetInfoTexts() {
         'CLOUD' => 'Windows S',
         'CLOUDN' => 'Windows S N',
         'CLOUDE' => 'Windows Lean',
+        'CLOUDEDITION' => 'Windows SE',
+        'CLOUDEDITIONN' => 'Windows SE N',
         'CORE' => 'Windows Home',
         'CORECOUNTRYSPECIFIC' => 'Windows Home China',
         'COREN' => 'Windows Home N',
