@@ -54,7 +54,7 @@ function genUUID() {
 function sendWuPostRequest($url, $postData) {
     $req = curl_init($url);
 
-    $proxy = uupDumpApiGetDebug();
+    $proxy = uupDumpApiGetConfig();
     if(isset($proxy['proxy'])) {
         curl_setopt($req, CURLOPT_PROXY, $proxy['proxy']);
     }
@@ -120,13 +120,12 @@ function consoleLogger($message, $showTime = 1) {
     fwrite(STDERR, $msg."\n");
 }
 
-function uupDumpApiGetDebug() {
-    if(!file_exists('debug.ini')) {
+function uupDumpApiGetConfig() {
+    if(!file_exists('config.ini')) {
         return null;
     }
 
-    $data = parse_ini_file('debug.ini');
-    return $data;
+    return parse_ini_file('config.ini');
 }
 
 function uupApiCheckUpdateId($updateId) {
