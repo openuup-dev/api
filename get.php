@@ -389,7 +389,7 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
         }
     }
 
-    if($cacheRequests == 1) {
+    if($cacheRequests == 1 && $cached == 0) {
         $cache = array(
             'expires' => time()+90,
             'content' => $out,
