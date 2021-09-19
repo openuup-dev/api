@@ -305,7 +305,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         if(!file_exists('fileinfo')) mkdir('fileinfo');
 
         $fileList = preg_replace('/<Files>|<\/Files>/', '', $fileList[0]);
-        preg_match_all('/<File .*?>/', $fileList, $fileList);
+        preg_match_all('/<File.*?<\/File>/', $fileList, $fileList);
 
         $shaArray = array();
 
@@ -320,9 +320,13 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
             preg_match('/Size=".*?"/', $val, $size);
             $size = preg_replace('/Size="|"$/', '', $size[0]);
 
+            preg_match('/(<AdditionalDigest.*Algorithm="SHA256".*>)(.*?)(<\/AdditionalDigest>)/', $val, $sha256);
+            $sha256 = bin2hex(base64_decode($sha256[2]));
+
             $temp = array(
                 'name' => $name,
                 'size' => $size,
+                'sha256' => $sha256,
             );
 
             $shaArray = array_merge($shaArray, array($sha1 => $temp));
@@ -350,6 +354,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         }
 
         $temp['created'] = time();
+        $temp['sha256ready'] = true;
         $temp['files'] = $shaArray;
 
         consoleLogger('Successfully parsed the information.');

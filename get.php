@@ -137,6 +137,7 @@ function uupGetFiles(
     $updateArch = (isset($info['arch'])) ? $info['arch'] : 'UNKNOWN';
     $updateBuild = (isset($info['build'])) ? $info['build'] : 'UNKNOWN';
     $updateName = (isset($info['title'])) ? $info['title'] : 'Unknown update: '.$updateId;
+    $sha256capable = isset($info['sha256ready']);
 
     if(isset($info['releasetype'])) {
         $type = $info['releasetype'];
@@ -158,47 +159,49 @@ function uupGetFiles(
         return $filesInfoList;
     }
 
-    $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($filesInfoList));
-    foreach($baseless as $val) {
-        if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
-    }
-
-    $diffs = preg_grep('/.*_Diffs_.*|.*_Forward_CompDB_.*|\.cbsu\.cab$/i', array_keys($filesInfoList));
-    foreach($diffs as $val) {
-        if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
-    }
-
-    $psf = array_keys($filesInfoList);
-    $psf = preg_grep('/\.psf$/i', $psf);
-
-    $psfk = preg_grep('/Windows10\.0-KB.*/i', $psf);
-    $psfk = preg_grep('/.*-EXPRESS|.*-baseless/i', $psfk, PREG_GREP_INVERT);
-    if($build > 21380) foreach($psfk as $key => $val) {
-        if(isset($psf[$key])) unset($psf[$key]);
-    }
-    unset($psfk);
-
-    $removeFiles = array();
-    foreach($psf as $val) {
-        $name = preg_replace('/\.psf$/i', '', $val);
-        $removeFiles[] = $name;
-        unset($filesInfoList[$val]);
-    }
-    unset($index, $name, $psf);
-
-    $temp = preg_grep('/'.$updateArch.'_.*|arm64\.arm_.*|arm64\.x86_.*/i', $removeFiles);
-    foreach($temp as $key => $val) {
-        if(isset($filesInfoList[$val.'.cab'])) unset($filesInfoList[$val.'.cab']);
-        unset($removeFiles[$key]);
-    }
-    unset($temp);
-
-    foreach($removeFiles as $val) {
-        if(isset($filesInfoList[$val.'.esd'])) {
-            if(isset($filesInfoList[$val.'.cab'])) unset($filesInfoList[$val.'.cab']);
+    if(!$sha256capable) {
+        $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($filesInfoList));
+        foreach($baseless as $val) {
+            if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
         }
+
+        $diffs = preg_grep('/.*_Diffs_.*|.*_Forward_CompDB_.*|\.cbsu\.cab$/i', array_keys($filesInfoList));
+        foreach($diffs as $val) {
+            if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
+        }
+
+        $psf = array_keys($filesInfoList);
+        $psf = preg_grep('/\.psf$/i', $psf);
+
+        $psfk = preg_grep('/Windows10\.0-KB.*/i', $psf);
+        $psfk = preg_grep('/.*-EXPRESS|.*-baseless/i', $psfk, PREG_GREP_INVERT);
+        if($build > 21380) foreach($psfk as $key => $val) {
+            if(isset($psf[$key])) unset($psf[$key]);
+        }
+        unset($psfk);
+
+        $removeFiles = array();
+        foreach($psf as $val) {
+            $name = preg_replace('/\.psf$/i', '', $val);
+            $removeFiles[] = $name;
+            unset($filesInfoList[$val]);
+        }
+        unset($index, $name, $psf);
+
+        $temp = preg_grep('/'.$updateArch.'_.*|arm64\.arm_.*|arm64\.x86_.*/i', $removeFiles);
+        foreach($temp as $key => $val) {
+            if(isset($filesInfoList[$val.'.cab'])) unset($filesInfoList[$val.'.cab']);
+            unset($removeFiles[$key]);
+        }
+        unset($temp);
+
+        foreach($removeFiles as $val) {
+            if(isset($filesInfoList[$val.'.esd'])) {
+                if(isset($filesInfoList[$val.'.cab'])) unset($filesInfoList[$val.'.cab']);
+            }
+        }
+        unset($removeFiles);
     }
-    unset($removeFiles);
 
     $filesInfoKeys = array_keys($filesInfoList);
 
@@ -236,28 +239,44 @@ function uupGetFiles(
         $filesPacksList = array_merge($filesPacksList, $temp);
 
         $newFiles = array();
-        foreach($filesPacksList as $val) {
-            $name = $uupCleanFunc($val);
-            $filesPacksKeys[] = $name;
-
-            if(isset($filesInfoList[$name])) {
-                $newFiles[$name] = $filesInfoList[$name];
+        $failedFile = false;
+        if($sha256capable) {
+            $tmp = [];
+            foreach($filesInfoList as $key => $val) {
+                $tmp[$val['sha256']] = $key;
             }
+
+            foreach($filesPacksList as $val) {
+                if(isset($tmp[$val])) {
+                    $name = $tmp[$val];
+                    $newFiles[$name] = $filesInfoList[$name];
+                } else if(isset($filesInfoList[$val])) {
+                    $name = $val;
+                    $newFiles[$name] = $filesInfoList[$name];
+                } else {
+                    $failedFile = $val;
+                }
+            }
+        } else {
+            foreach($filesPacksList as $val) {
+                $name = $uupCleanFunc($val);
+                $filesPacksKeys[] = $name;
+
+                if(isset($filesInfoList[$name])) {
+                    $newFiles[$name] = $filesInfoList[$name];
+                } else {
+                    $failedFile = $name;
+                }
+            }
+        }
+
+        if($failedFile) {
+            consoleLogger("Missing file: $failedFile");
+            return array('error' => 'MISSING_FILES');
         }
 
         $filesInfoList = $newFiles;
         $filesInfoKeys = array_keys($filesInfoList);
-
-        $filesPacksKeys = array_unique($filesPacksKeys);
-        sort($filesPacksKeys);
-        $compare = array_diff($filesPacksKeys, $filesInfoKeys);
-
-        if(count($compare)) {
-            foreach($compare as $val) {
-                consoleLogger("Missing file: $val");
-            }
-            return array('error' => 'MISSING_FILES');
-        }
     }
 
     if(empty($filesInfoKeys)) {
@@ -338,12 +357,15 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
     if($info['sku'] == 189) $uupCleanFunc = 'uupCleanWCOS';
     if($info['sku'] == 135) $uupCleanFunc = 'uupCleanHolo';
 
+    $sha256capable = isset($info['sha256ready']);
+
     $fileLocations = $getResult->FileLocations;
     $info = $info['files'];
 
     $files = array();
     foreach($fileLocations->FileLocation as $val) {
         $sha1 = bin2hex(base64_decode((string)$val->FileDigest));
+        $sha256 = isset($info[$sha1]['sha256']) ? $info[$sha1]['sha256'] : null;
         $url = (string)$val->Url;
 
         preg_match('/files\/(.{8}-.{4}-.{4}-.{4}-.{12})/', $url, $guid);
@@ -378,13 +400,21 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
 
             $temp = array();
             $temp['sha1'] = $sha1;
+            $temp['sha256'] = $sha256;
             $temp['size'] = $size;
             $temp['url'] = $url;
             $temp['uuid'] = $guid;
             $temp['expire'] = $expire;
             $temp['debug'] = $val->asXML();
 
-            $newName = $uupCleanFunc($name);
+            if($sha256capable) {
+                $n = strrpos($name, '.');
+                if($n === false) $n = strlen($name);
+                $newName = substr($name, 0, $n).'_'.substr($sha1, 0, 8).substr($name, $n);
+            } else {
+                $newName = $uupCleanFunc($name);
+            }
+
             $files[$newName] = $temp;
         }
     }
@@ -410,10 +440,13 @@ function uupGetOfflineFiles($info) {
     if($info['sku'] == 189) $uupCleanFunc = 'uupCleanWCOS';
     if($info['sku'] == 135) $uupCleanFunc = 'uupCleanHolo';
 
+    $sha256capable = isset($info['sha256ready']);
+
     consoleLogger('Parsing information...');
     foreach($info['files'] as $sha1 => $val) {
         $name = $val['name'];
         $size = $val['size'];
+        $sha256 = isset($val['sha256']) ? $val['sha256'] : null;
         if(!isset($fileSizes[$name])) $fileSizes[$name] = 0;
 
         if($size > $fileSizes[$name]) {
@@ -421,13 +454,21 @@ function uupGetOfflineFiles($info) {
 
             $temp = array();
             $temp['sha1'] = $sha1;
+            $temp['sha256'] = $sha256;
             $temp['size'] = $size;
             $temp['url'] = null;
             $temp['uuid'] = null;
             $temp['expire'] = 0;
             $temp['debug'] = null;
 
-            $newName = $uupCleanFunc($name);
+            if($sha256capable) {
+                $n = strrpos($name, '.');
+                if($n === false) $n = strlen($name);
+                $newName = substr($name, 0, $n).'_'.substr($sha1, 0, 8).substr($name, $n);
+            } else {
+                $newName = $uupCleanFunc($name);
+            }
+
             $files[$newName] = $temp;
         }
     }
