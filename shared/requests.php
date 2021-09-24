@@ -106,11 +106,15 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=139',
+        'AttrDataVer=146',
+        'AllowInPlaceUpgrade=1',
+        'AllowUpgradesWithUnsupportedTPMOrCPU=1',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
         'DataExpDateEpoch_CO21H2='.(time()+82800),
+        'DataExpDateEpoch_CO21H2Setup='.(time()+82800),
+        'DataExpDateEpoch_21H2='.(time()+82800),
         'DataExpDateEpoch_21H1='.(time()+82800),
         'DataExpDateEpoch_20H1='.(time()+82800),
         'DataExpDateEpoch_19H1='.(time()+82800),
@@ -122,8 +126,10 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'FlightingBranchName='.$fltBranch,
         //'FlightContent='.$fltContent,
         'FlightRing='.$fltRing,
-        'Free=32to64',
+        'Free=gt64',
         'GStatus_CO21H2=2',
+        'GStatus_CO21H2Setup=2',
+        'GStatus_21H2=2',
         'GStatus_21H1=2',
         'GStatus_20H1=2',
         'GStatus_20H1Setup=2',
@@ -150,12 +156,15 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'OSVersion='.$build,
         'ProcessorIdentifier=Intel64 Family 6 Model 85 Stepping 4',
         'ProcessorManufacturer=GenuineIntel',
+        'ProcessorModel=Intel(R) Core(TM) i9-7900X CPU @ 3.30GHz',
         'ReleaseType='.$type,
         'SdbVer_20H1=2000000000',
         'SdbVer_19H1=2000000000',
         'SecureBootCapable=1',
         'TelemetryLevel=3',
         'TimestampEpochString_CO21H2='.(time()-3600),
+        'TimestampEpochString_CO21H2Setup='.(time()-3600),
+        'TimestampEpochString_21H2='.(time()-3600),
         'TimestampEpochString_21H1='.(time()-3600),
         'TimestampEpochString_20H1='.(time()-3600),
         'TimestampEpochString_19H1='.(time()-3600),
@@ -163,6 +172,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'UpdateManagementGroup=2',
         'UpdateOfferedDays=0',
         'UpgEx_CO21H2=Green',
+        'UpgEx_21H2=Green',
         'UpgEx_21H1=Green',
         'UpgEx_20H1=Green',
         'UpgEx_19H1=Green',
@@ -357,9 +367,12 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     $products = array();
     foreach($arch as $currArch) {
         $products[] = "PN=$mainProduct.$currArch&Branch=$branch&PrimaryOSProduct=1&Repairable=1&V=$build&ReofferUpdate=1";
+        $products[] = "PN=Adobe.Flash.$currArch&Repairable=1&V=0.0.0.0";
+        $products[] = "PN=Microsoft.Edge.Stable.$currArch&Repairable=1&V=0.0.0.0";
+        $products[] = "PN=Microsoft.NETFX.$currArch&V=2018.12.2.0";
         $products[] = "PN=Windows.Appraiser.$currArch&Repairable=1&V=$build";
         $products[] = "PN=Windows.AppraiserData.$currArch&Repairable=1&V=$build";
-        $products[] = "PN=Windows.EmergencyUpdate.$currArch&Repairable=1&V=$build";
+        $products[] = "PN=Windows.EmergencyUpdate.$currArch&V=$build";
         $products[] = "PN=Windows.FeatureExperiencePack.$currArch&Repairable=1&V=0.0.0.0";
         $products[] = "PN=Windows.ManagementOOBE.$currArch&IsWindowsManagementOOBE=1&Repairable=1&V=$build";
         $products[] = "PN=Windows.OOBE.$currArch&IsWindowsOOBE=1&Repairable=1&V=$build";
@@ -367,9 +380,7 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $products[] = "PN=Hammer.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
         $products[] = "PN=MSRT.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
         $products[] = "PN=SedimentPack.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
-        $products[] = "PN=Microsoft.Edge.Stable.$currArch&Repairable=1&V=0.0.0.0";
-        $products[] = "PN=Adobe.Flash.$currArch&Repairable=1&V=$build";
-        $products[] = "PN=Microsoft.NETFX.$currArch&V=2018.12.2.0";
+        $products[] = "PN=UUS.$currArch&Source=UpdateOrchestrator&V=0.0.0.0";
     }
 
     $callerAttrib = array(
