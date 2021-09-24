@@ -208,7 +208,7 @@ function uupGetFiles(
     switch($fileListSource) {
         case 'UPDATEONLY':
             $skipPackBuild = 1;
-            $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS|SSU-\d*?\.\d*?-.{3,5}-EXPRESS/i', $filesInfoKeys);
+            $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS|Windows10\.0-KB.*-baseless|SSU-\d*?\.\d*?-.{3,5}-EXPRESS/i', $filesInfoKeys);
 
             foreach($removeFiles as $val) {
                 if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
@@ -217,7 +217,7 @@ function uupGetFiles(
 
             $filesInfoKeys = array_keys($filesInfoList);
 
-            $filesInfoKeys = preg_grep('/Windows10\.0-KB|SSU-\d*?\.\d*?-.{3,5}/i', $filesInfoKeys);
+            $filesInfoKeys = preg_grep('/Windows10\.0-KB|SSU-\d*?\.\d*?-.*?\.cab/i', $filesInfoKeys);
             if(count($filesInfoKeys) == 0) {
                 return array('error' => 'NOT_CUMULATIVE_UPDATE');
             }
@@ -234,8 +234,8 @@ function uupGetFiles(
     if($updateSku == 135) $uupCleanFunc = 'uupCleanHolo';
 
     if($fileListSource == 'GENERATEDPACKS') {
-        $temp = preg_grep('/Windows10\.0-KB.*-EXPRESS|SSU-\d*?\.\d*?-.{3,5}-EXPRESS/i', $filesInfoKeys, PREG_GREP_INVERT);
-        $temp = preg_grep('/Windows10\.0-KB|SSU-\d*?\.\d*?-.{3,5}/i', $temp);
+        $temp = preg_grep('/Windows10\.0-KB.*-EXPRESS|Windows10\.0-KB.*-baseless|SSU-\d*?\.\d*?-.{3,5}-EXPRESS/i', $filesInfoKeys, PREG_GREP_INVERT);
+        $temp = preg_grep('/Windows10\.0-KB|SSU-\d*?\.\d*?-.*?\.cab/i', $temp);
         $filesPacksList = array_merge($filesPacksList, $temp);
 
         $newFiles = array();
