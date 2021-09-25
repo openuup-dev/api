@@ -159,14 +159,14 @@ function uupGetFiles(
         return $filesInfoList;
     }
 
+    $diffs = preg_grep('/.*_Diffs_.*|.*_Forward_CompDB_.*|\.cbsu\.cab$/i', array_keys($filesInfoList));
+    foreach($diffs as $val) {
+        if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
+    }
+
     if(!$sha256capable) {
         $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($filesInfoList));
         foreach($baseless as $val) {
-            if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
-        }
-
-        $diffs = preg_grep('/.*_Diffs_.*|.*_Forward_CompDB_.*|\.cbsu\.cab$/i', array_keys($filesInfoList));
-        foreach($diffs as $val) {
             if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
         }
 
@@ -254,7 +254,8 @@ function uupGetFiles(
                     $name = $val;
                     $newFiles[$name] = $filesInfoList[$name];
                 } else {
-                    $failedFile = $val;
+                    $failedFile = true;
+					consoleLogger("Missing file: $val");
                 }
             }
         } else {
@@ -265,13 +266,13 @@ function uupGetFiles(
                 if(isset($filesInfoList[$name])) {
                     $newFiles[$name] = $filesInfoList[$name];
                 } else {
-                    $failedFile = $name;
+                    $failedFile = true;
+					consoleLogger("Missing file: $name");
                 }
             }
         }
 
         if($failedFile) {
-            consoleLogger("Missing file: $failedFile");
             return array('error' => 'MISSING_FILES');
         }
 
@@ -379,9 +380,17 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
             $size = $info[$sha1]['size'];
         }
 
-        if(!isset($fileSizes[$name])) $fileSizes[$name] = -2;
+        if($sha256capable) {
+            $n = strrpos($name, '.');
+            if($n === false) $n = strlen($name);
+            $newName = substr($name, 0, $n).'_'.substr($sha1, 0, 8).substr($name, $n);
+        } else {
+            $newName = $uupCleanFunc($name);
+        }
 
-        if($size > $fileSizes[$name]) {
+        if(!isset($fileSizes[$newName])) $fileSizes[$newName] = -2;
+
+        if($size > $fileSizes[$newName]) {
             preg_match('/P1=(.*?)&/', $url, $expire);
             if(isset($expire[0])) {
                 $expire = $expire[1];
@@ -396,7 +405,7 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
                 unset($temp);
             }
 
-            $fileSizes[$name] = $size;
+            $fileSizes[$newName] = $size;
 
             $temp = array();
             $temp['sha1'] = $sha1;
@@ -406,14 +415,6 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
             $temp['uuid'] = $guid;
             $temp['expire'] = $expire;
             $temp['debug'] = $val->asXML();
-
-            if($sha256capable) {
-                $n = strrpos($name, '.');
-                if($n === false) $n = strlen($name);
-                $newName = substr($name, 0, $n).'_'.substr($sha1, 0, 8).substr($name, $n);
-            } else {
-                $newName = $uupCleanFunc($name);
-            }
 
             $files[$newName] = $temp;
         }
@@ -447,10 +448,19 @@ function uupGetOfflineFiles($info) {
         $name = $val['name'];
         $size = $val['size'];
         $sha256 = isset($val['sha256']) ? $val['sha256'] : null;
-        if(!isset($fileSizes[$name])) $fileSizes[$name] = 0;
 
-        if($size > $fileSizes[$name]) {
-            $fileSizes[$name] = $size;
+        if($sha256capable) {
+            $n = strrpos($name, '.');
+            if($n === false) $n = strlen($name);
+            $newName = substr($name, 0, $n).'_'.substr($sha1, 0, 8).substr($name, $n);
+        } else {
+            $newName = $uupCleanFunc($name);
+        }
+
+        if(!isset($fileSizes[$newName])) $fileSizes[$newName] = 0;
+
+        if($size > $fileSizes[$newName]) {
+            $fileSizes[$newName] = $size;
 
             $temp = array();
             $temp['sha1'] = $sha1;
@@ -460,14 +470,6 @@ function uupGetOfflineFiles($info) {
             $temp['uuid'] = null;
             $temp['expire'] = 0;
             $temp['debug'] = null;
-
-            if($sha256capable) {
-                $n = strrpos($name, '.');
-                if($n === false) $n = strlen($name);
-                $newName = substr($name, 0, $n).'_'.substr($sha1, 0, 8).substr($name, $n);
-            } else {
-                $newName = $uupCleanFunc($name);
-            }
 
             $files[$newName] = $temp;
         }
