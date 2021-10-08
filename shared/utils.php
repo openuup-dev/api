@@ -66,7 +66,7 @@ function sendWuPostRequest($url, $postData) {
     curl_setopt($req, CURLOPT_POSTFIELDS, $postData);
     curl_setopt($req, CURLOPT_SSL_VERIFYPEER, 0);
     curl_setopt($req, CURLOPT_HTTPHEADER, array(
-        'User-Agent: Windows-Update-Agent/10.0.10011.16384 Client-Protocol/1.70',
+        'User-Agent: Windows-Update-Agent/10.0.10011.16384 Client-Protocol/2.50',
         'Content-Type: application/soap+xml; charset=utf-8',
     ));
 
