@@ -206,6 +206,13 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         $foundBuild = @$info[3];
     }
 
+    if(!isset($foundArch) || empty($foundArch)) {
+        preg_match('/ProductReleaseInstalled Name\="(.*?)\.(.*?)" Version\="(.*?)"/', $updateInfo, $info);
+        $foundType = @strtolower($info[1]);
+        $foundArch = @strtolower($info[2]);
+        $foundBuild = @$info[3];
+    }
+
     $updateTitle = preg_grep('/<Title>.*<\/Title>/', $updateMeta);
     sort($updateTitle);
 
@@ -223,7 +230,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         $updateTitle = preg_replace('/ for .{3,5}-based/i', ' for', $updateTitle);
 
     $isCumulativeUpdate = 0;
-    if(preg_match('/\d{4}-\d{2}.+Update|Cumulative Update|Microsoft Edge|Windows Feature Experience Pack/i', $updateTitle)) {
+    if(preg_match('/\d{4}-\d{2}.+Update|Cumulative Update|Microsoft Edge|Windows Feature Experience Pack|Cumulative security Hotpatch/i', $updateTitle)) {
         $isCumulativeUpdate = 1;
         $updateTitle = preg_replace('/ for .{3,5}-based systems| \(KB.*?\)/i', '', $updateTitle);
     }
