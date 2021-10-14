@@ -156,7 +156,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'OSVersion='.$build,
         'ProcessorIdentifier=Intel64 Family 6 Model 85 Stepping 4',
         'ProcessorManufacturer=GenuineIntel',
-        'ProcessorModel=Intel(R) Core(TM) i9-7900X CPU @ 3.30GHz',
+        'ProcessorModel=Incel(R) Cope(TM) i9-42069E CPU @ 6.66GHz',
         'ReleaseType='.$type,
         'SdbVer_20H1=2000000000',
         'SdbVer_19H1=2000000000',
