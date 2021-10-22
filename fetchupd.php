@@ -237,8 +237,10 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
 
     $updateTitle = preg_replace("/ ?\d{4}-\d{2}\D ?| ?$foundArch ?| ?x64 ?/i", '', $updateTitle);
 
-    if($foundType == 'server')
+    if($foundType == 'server') {
         $updateTitle = str_replace('Windows 10', 'Windows Server', $updateTitle);
+        $updateTitle = str_replace('Windows 11', 'Windows Server', $updateTitle);
+    }
 
     if($sku == 406)
         $updateTitle = str_replace('Microsoft server operating system', 'Azure Stack HCI', $updateTitle);
