@@ -56,6 +56,7 @@ function uupListEditions($lang = 'en-us', $updateId = 0) {
     $editionListFancy = array();
     foreach(array_keys($genPack[$lang]) as $edition) {
         if($edition == 'LXP') continue;
+        if($edition == 'FOD') continue;
 
         if(isset($fancyEditionNames[$edition])) {
             $fancyName = $fancyEditionNames[$edition];

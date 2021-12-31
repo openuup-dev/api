@@ -50,6 +50,9 @@ function uupListLangs($updateId = 0) {
         if(!count(array_diff(array_keys($val), array('LXP')))) {
             continue;
         }
+        if(!count(array_diff(array_keys($val), array('FOD')))) {
+            continue;
+        }
 
         if(isset($fancyLangNames[$key])) {
             $fancyName = $fancyLangNames[$key];
