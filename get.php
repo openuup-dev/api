@@ -173,7 +173,7 @@ function uupGetFiles(
         $psf = array_keys($filesInfoList);
         $psf = preg_grep('/\.psf$/i', $psf);
 
-        $psfk = preg_grep('/Windows10\.0-KB.*/i', $psf);
+        $psfk = preg_grep('/Windows(10|11)\.0-KB.*/i', $psf);
         $psfk = preg_grep('/.*-EXPRESS/i', $psfk, PREG_GREP_INVERT);
         if($build > 21380) foreach($psfk as $key => $val) {
             if(isset($psf[$key])) unset($psf[$key]);
@@ -208,7 +208,7 @@ function uupGetFiles(
     switch($fileListSource) {
         case 'UPDATEONLY':
             $skipPackBuild = 1;
-            $removeFiles = preg_grep('/Windows10\.0-KB.*-EXPRESS|Windows10\.0-KB.*-baseless|SSU-.*-.{3,5}-EXPRESS/i', $filesInfoKeys);
+            $removeFiles = preg_grep('/Windows(10|11)\.0-KB.*-EXPRESS|Windows(10|11)\.0-KB.*-baseless|SSU-.*-.{3,5}-EXPRESS/i', $filesInfoKeys);
 
             foreach($removeFiles as $val) {
                 if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
@@ -218,7 +218,7 @@ function uupGetFiles(
             $filesInfoKeys = array_keys($filesInfoList);
             $temp = preg_grep('/.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $filesInfoKeys);
 
-            $filesInfoKeys = preg_grep('/Windows10\.0-KB|SSU-.*?\.cab/i', $filesInfoKeys);
+            $filesInfoKeys = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\.cab/i', $filesInfoKeys);
             if(count($filesInfoKeys) == 0) {
                 return array('error' => 'NOT_CUMULATIVE_UPDATE');
             }
@@ -238,11 +238,11 @@ function uupGetFiles(
     if($updateSku == 135) $uupCleanFunc = 'uupCleanHolo';
 
     if($fileListSource == 'GENERATEDPACKS') {
-        $temp = preg_grep('/Windows10\.0-KB.*-EXPRESS|Windows10\.0-KB.*-baseless|SSU-.*-.{3,5}-EXPRESS/i', $filesInfoKeys, PREG_GREP_INVERT);
+        $temp = preg_grep('/Windows(10|11)\.0-KB.*-EXPRESS|Windows(10|11)\.0-KB.*-baseless|SSU-.*-.{3,5}-EXPRESS/i', $filesInfoKeys, PREG_GREP_INVERT);
         if($build > 21380) {
-            $temp = preg_grep('/Windows10\.0-KB|SSU-.*?\.cab|.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $temp);
+            $temp = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\.cab|.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $temp);
         } else {
-            $temp = preg_grep('/Windows10\.0-KB|SSU-.*?\.cab/i', $temp);
+            $temp = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\.cab/i', $temp);
         }
         $filesPacksList = array_merge($filesPacksList, $temp);
 
