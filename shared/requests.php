@@ -26,7 +26,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         $arch = $arch[0];
     }
 
-    if($sku == 125 || $sku == 126 || $sku == 7 || $sku == 8 || $sku == 12 || $sku == 13 || $sku == 79 || $sku == 80 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 147 || $sku == 148 || $sku == 159 || $sku == 160 || $sku == 406 || $sku == 407 || $sku == 408)
+    if($sku == 125 || $sku == 126)
         $blockUpgrades = 1;
 
     $dvcFamily = 'Windows.Desktop';
@@ -34,9 +34,10 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     if($sku == 119) {
         $dvcFamily = 'Windows.Team';
     }
-    if($sku == 7 || $sku == 8 || $sku == 12 || $sku == 13 || $sku == 79 || $sku == 80 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 147 || $sku == 148 || $sku == 159 || $sku == 160 || $sku == 406 || $sku == 407 || $sku == 408) {
+    if(in_array($sku, [7,8,12,13,79,80,120,145,146,147,148,159,160,406,407,408])) {
         $dvcFamily = 'Windows.Server';
         $insType = 'Server';
+        $blockUpgrades = 1;
     }
     /*/ Hololens
     if($sku == 135) {
@@ -331,7 +332,7 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     $branch = branchFromBuild($build);
 
     $mainProduct = 'Client.OS.rs2';
-    if($sku == 7 || $sku == 8 || $sku == 12 || $sku == 13 || $sku == 79 || $sku == 80 || $sku == 120 || $sku == 145 || $sku == 146 || $sku == 147 || $sku == 148 || $sku == 159 || $sku == 160 || $sku == 406 || $sku == 407 || $sku == 408) {
+    if(in_array($sku, [7,8,12,13,79,80,120,145,146,147,148,159,160,406,407,408])) {
         $mainProduct = 'Server.OS';
     }
     /*/ Hololens

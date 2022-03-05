@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2021 UUP dump API authors
+Copyright 2022 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ require_once dirname(__FILE__).'/../listid.php';
 
 function uupGetInfoTexts() {
     $fancyLangNames = array(
+        'neutral' => 'Any Language',
         'ar-sa' => 'Arabic (Saudi Arabia)',
         'bg-bg' => 'Bulgarian',
         'cs-cz' => 'Czech',
@@ -61,6 +62,8 @@ function uupGetInfoTexts() {
     );
 
     $fancyEditionNames = array(
+        'APP' => 'Microsoft Store Inbox Apps',
+        'FOD' => 'Features on Demand (Capabilities)',
         'CLOUD' => 'Windows S',
         'CLOUDN' => 'Windows S N',
         'CLOUDE' => 'Windows Lean',

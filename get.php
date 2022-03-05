@@ -79,6 +79,8 @@ function uupGetFiles(
         }
     }
 
+    $appEdition = 0;
+
     if(!is_array($desiredEdition)) {
         $desiredEdition = strtoupper($desiredEdition);
         $fileListSource = $desiredEdition;
@@ -103,6 +105,8 @@ function uupGetFiles(
             case 'WUBFILE': break;
 
             case 'UPDATEONLY': break;
+
+            case 'APP': $appEdition = 1;
 
             default:
                 if(!isset($genPack[$usePack][$desiredEdition])) {
@@ -164,44 +168,51 @@ function uupGetFiles(
         if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
     }
 
-    if(!$sha256capable) {
-        $baseless = preg_grep('/^baseless_|-baseless\....$/i', array_keys($filesInfoList));
-        foreach($baseless as $val) {
-            if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
-        }
-
-        $psf = array_keys($filesInfoList);
-        $psf = preg_grep('/\.psf$/i', $psf);
-
-        $psfk = preg_grep('/Windows(10|11)\.0-KB.*/i', $psf);
-        $psfk = preg_grep('/.*-EXPRESS/i', $psfk, PREG_GREP_INVERT);
-        if($build > 21380) foreach($psfk as $key => $val) {
-            if(isset($psf[$key])) unset($psf[$key]);
-        }
-        unset($psfk);
-
-        $removeFiles = array();
-        foreach($psf as $val) {
-            $name = preg_replace('/\.psf$/i', '', $val);
-            $removeFiles[] = $name;
-            unset($filesInfoList[$val]);
-        }
-        unset($index, $name, $psf);
-
-        $temp = preg_grep('/'.$updateArch.'_.*|arm64\.arm_.*|arm64\.x86_.*/i', $removeFiles);
-        foreach($temp as $key => $val) {
-            if(isset($filesInfoList[$val.'.cab'])) unset($filesInfoList[$val.'.cab']);
-            unset($removeFiles[$key]);
-        }
-        unset($temp);
-
-        foreach($removeFiles as $val) {
-            if(isset($filesInfoList[$val.'.esd'])) {
-                if(isset($filesInfoList[$val.'.cab'])) unset($filesInfoList[$val.'.cab']);
-            }
-        }
-        unset($removeFiles);
+    $baseless = preg_grep('/^baseless_|Windows(10|11)\.0-KB.*-EXPRESS|SSU-.*-EXPRESS/i', array_keys($filesInfoList));
+    foreach($baseless as $val) {
+        if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
     }
+
+    $psf = array_keys($filesInfoList);
+    $psf = preg_grep('/\.psf$/i', $psf);
+
+    $psfk = preg_grep('/Windows(10|11)\.0-KB.*/i', $psf);
+    $psfk = preg_grep('/.*-EXPRESS/i', $psfk, PREG_GREP_INVERT);
+    foreach($psfk as $key => $val) {
+        if(isset($psf[$key])) unset($psf[$key]);
+    }
+    unset($psfk);
+
+    $removeFiles = array();
+    foreach($psf as $val) {
+        $name = preg_replace('/\.psf$/i', '', $val);
+        $removeFiles[] = $name;
+        unset($filesInfoList[$val]);
+    }
+    unset($index, $name, $psf);
+
+    $temp = preg_grep('/'.$updateArch.'_.*|arm64\.arm_.*|arm64\.x86_.*/i', $removeFiles);
+    foreach($temp as $key => $val) {
+        if(isset($filesInfoList[$val.'.cab'])) unset($filesInfoList[$val.'.cab']);
+        unset($removeFiles[$key]);
+    }
+    unset($temp);
+
+    foreach($removeFiles as $val) {
+        if(isset($filesInfoList[$val.'.esd'])) {
+            if(isset($filesInfoList[$val.'.cab'])) unset($filesInfoList[$val.'.cab']);
+        }
+    }
+    unset($removeFiles);
+
+    $msu = array_keys($filesInfoList);
+    $msu = preg_grep('/\.msu$/i', $msu);
+    $removeMSUs = array();
+    foreach($msu as $val) {
+        $name = preg_replace('/\.msu$/i', '', $val);
+        $removeMSUs[] = $name;
+    }
+    unset($index, $name, $msu);
 
     $filesInfoKeys = array_keys($filesInfoList);
 
@@ -215,10 +226,17 @@ function uupGetFiles(
             }
             unset($removeFiles);
 
+            foreach($removeMSUs as $val) {
+                if(isset($filesInfoList[$val.'.cab'])) {
+                    if(isset($filesInfoList[$val.'.msu'])) unset($filesInfoList[$val.'.msu']);
+                }
+            }
+            unset($removeMSUs);
+
             $filesInfoKeys = array_keys($filesInfoList);
             $temp = preg_grep('/.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $filesInfoKeys);
 
-            $filesInfoKeys = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\.cab/i', $filesInfoKeys);
+            $filesInfoKeys = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\....$/i', $filesInfoKeys);
             if(count($filesInfoKeys) == 0) {
                 return array('error' => 'NOT_CUMULATIVE_UPDATE');
             }
@@ -238,11 +256,21 @@ function uupGetFiles(
     if($updateSku == 135) $uupCleanFunc = 'uupCleanHolo';
 
     if($fileListSource == 'GENERATEDPACKS') {
+        foreach($removeMSUs as $val) {
+            if(isset($filesInfoList[$val.'.cab'])) {
+                if(isset($filesInfoList[$val.'.msu'])) unset($filesInfoList[$val.'.msu']);
+            }
+        }
+        unset($removeMSUs);
+        $filesInfoKeys = array_keys($filesInfoList);
+
         $temp = preg_grep('/Windows(10|11)\.0-KB.*-EXPRESS|Windows(10|11)\.0-KB.*-baseless|SSU-.*-.{3,5}-EXPRESS/i', $filesInfoKeys, PREG_GREP_INVERT);
-        if($build > 21380) {
-            $temp = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\.cab|.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $temp);
+        if($appEdition) {
+            $temp = preg_grep('/.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $temp);
+        } else if($build > 21380) {
+            $temp = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\....$|.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $temp);
         } else {
-            $temp = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\.cab/i', $temp);
+            $temp = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\....$/i', $temp);
         }
         $filesPacksList = array_merge($filesPacksList, $temp);
 
@@ -390,9 +418,12 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
         }
 
         if($sha256capable) {
-            $n = strrpos($name, '.');
-            if($n === false) $n = strlen($name);
-            $newName = substr($name, 0, $n).'_'.substr($sha1, 0, 8).substr($name, $n);
+            $tempname = uupCleanSha256($name);
+            if(isset($files[$tempname])) {
+                $newName = uupAppendSha1($tempname, $sha1);
+            } else {
+                $newName = $tempname;
+            }
         } else {
             $newName = $uupCleanFunc($name);
         }
@@ -459,9 +490,12 @@ function uupGetOfflineFiles($info) {
         $sha256 = isset($val['sha256']) ? $val['sha256'] : null;
 
         if($sha256capable) {
-            $n = strrpos($name, '.');
-            if($n === false) $n = strlen($name);
-            $newName = substr($name, 0, $n).'_'.substr($sha1, 0, 8).substr($name, $n);
+            $tempname = uupCleanSha256($name);
+            if(isset($files[$tempname])) {
+                $newName = uupAppendSha1($tempname, $sha1);
+            } else {
+                $newName = $tempname;
+            }
         } else {
             $newName = $uupCleanFunc($name);
         }
@@ -485,6 +519,24 @@ function uupGetOfflineFiles($info) {
     }
 
     return $files;
+}
+
+function uupAppendSha1($name, $sha1) {
+    $n = strrpos($name, '.');
+    if($n === false) $n = strlen($name);
+    return substr($name, 0, $n).'_'.substr($sha1, 0, 8).substr($name, $n);
+}
+
+function uupCleanSha256($name) {
+    $replace = array(
+        'prss_signed_appx_' => null,
+        '~31bf3856ad364e35' => null,
+        '~~.' => '.',
+        '~.' => '.',
+        '~' => '-',
+    );
+
+    return strtr($name, $replace);
 }
 
 function uupCleanName($name) {
