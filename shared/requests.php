@@ -107,7 +107,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=146',
+        'AttrDataVer=177',
         'AllowInPlaceUpgrade=1',
         'AllowUpgradesWithUnsupportedTPMOrCPU=1',
         'BlockFeatureUpdates='.$blockUpgrades,
@@ -246,6 +246,10 @@ function branchFromBuild($build) {
 
         case 22000:
             $branch = 'co_release';
+            break;
+
+        case 22621:
+            $branch = 'ni_release';
             break;
 
         default:
