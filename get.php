@@ -420,7 +420,14 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
         if($sha256capable) {
             $tempname = uupCleanSha256($name);
             if(isset($files[$tempname])) {
-                $newName = uupAppendSha1($tempname, $sha1);
+                if($size > $files[$tempname]['size']) {
+                    $smaller = uupAppendSha1($tempname, $files[$tempname]['sha1']);
+                    $files[$smaller] = $files[$tempname];
+                    unset($files[$tempname]);
+                    $newName = $tempname;
+                } else {
+                    $newName = uupAppendSha1($tempname, $sha1);
+                }
             } else {
                 $newName = $tempname;
             }
@@ -492,7 +499,14 @@ function uupGetOfflineFiles($info) {
         if($sha256capable) {
             $tempname = uupCleanSha256($name);
             if(isset($files[$tempname])) {
-                $newName = uupAppendSha1($tempname, $sha1);
+                if($size > $files[$tempname]['size']) {
+                    $smaller = uupAppendSha1($tempname, $files[$tempname]['sha1']);
+                    $files[$smaller] = $files[$tempname];
+                    unset($files[$tempname]);
+                    $newName = $tempname;
+                } else {
+                    $newName = uupAppendSha1($tempname, $sha1);
+                }
             } else {
                 $newName = $tempname;
             }
