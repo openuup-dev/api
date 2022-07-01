@@ -213,26 +213,15 @@ function branchFromBuild($build) {
             break;
 
         case 18362:
-            $branch = '19h1_release';
-            break;
-
-        case 18363: //a fake build based on 18362
+        case 18363:
             $branch = '19h1_release';
             break;
 
         case 19041:
-            $branch = 'vb_release';
-            break;
-
-        case 19042: //a fake build based on 19041
-            $branch = 'vb_release';
-            break;
-
-        case 19043: //a fake build based on 19041
-            $branch = 'vb_release';
-            break;
-
-        case 19044: //a fake build based on 19041
+        case 19042:
+        case 19043:
+        case 19044:
+        case 19045:
             $branch = 'vb_release';
             break;
 
