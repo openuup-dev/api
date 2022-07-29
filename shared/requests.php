@@ -172,6 +172,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'TPMVersion=2',
         'UpdateManagementGroup=2',
         'UpdateOfferedDays=0',
+        'UpgEx_NI22H2=Green',
         'UpgEx_CO21H2=Green',
         'UpgEx_21H2=Green',
         'UpgEx_21H1=Green',
@@ -222,6 +223,7 @@ function branchFromBuild($build) {
         case 19043:
         case 19044:
         case 19045:
+        case 19046:
             $branch = 'vb_release';
             break;
 
@@ -230,6 +232,8 @@ function branchFromBuild($build) {
             break;
 
         case 20348:
+        case 20349:
+        case 20350:
             $branch = 'fe_release';
             break;
 
