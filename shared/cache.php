@@ -17,9 +17,11 @@ limitations under the License.
 
 class UupDumpCache {
     private $cacheFile;
+    private $newCacheVersion = 1;
 
     public function __construct($resource, $compressed = true) {
-        $cacheHash = hash('sha256', strtolower($resource));
+        $res = $resource."+cache_v".$this->newCacheVersion;
+        $cacheHash = hash('sha256', strtolower($res));
         $ext = $compressed ? '.json.gz' : '.json';
         $this->cacheFile = 'cache/'.$cacheHash.$ext;
     }
