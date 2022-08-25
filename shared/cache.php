@@ -71,7 +71,7 @@ class UupDumpCache {
         if(!file_exists('cache')) mkdir('cache');
 
         $cacheContent = json_encode($cache)."\n";
-        if($this->isCompressed) $cacheContent = @gzencode($cache);
+        if($this->isCompressed) $cacheContent = @gzencode($cacheContent);
 
         @file_put_contents($cacheFile, $cacheContent);
     }
