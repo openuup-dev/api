@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2019 UUP dump API authors
+Copyright 2022 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ require_once dirname(__FILE__).'/updateinfo.php';
 
 function uupListEditions($lang = 'en-us', $updateId = 0) {
     if($updateId) {
-        $info = uupUpdateInfo($updateId);
+        $info = uupUpdateInfo($updateId, false, true);
     }
 
     if(!$lang) {

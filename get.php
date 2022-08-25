@@ -18,6 +18,7 @@ limitations under the License.
 require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
 require_once dirname(__FILE__).'/shared/packs.php';
+require_once dirname(__FILE__).'/shared/cache.php';
 
 /*
 $updateId       = Update Identifier
@@ -142,6 +143,7 @@ function uupGetFiles(
     $updateBuild = (isset($info['build'])) ? $info['build'] : 'UNKNOWN';
     $updateName = (isset($info['title'])) ? $info['title'] : 'Unknown update: '.$updateId;
     $sha256capable = isset($info['sha256ready']);
+    $hasUpdates = false;
 
     if(isset($info['releasetype'])) {
         $type = $info['releasetype'];
@@ -215,6 +217,7 @@ function uupGetFiles(
     unset($index, $name, $msu);
 
     $filesInfoKeys = array_keys($filesInfoList);
+    $updatesRegex = '/Windows(10|11)\.0-KB|SSU-.*?\....$/i';
 
     switch($fileListSource) {
         case 'UPDATEONLY':
@@ -227,8 +230,8 @@ function uupGetFiles(
             unset($removeFiles);
 
             foreach($removeMSUs as $val) {
-                if(isset($filesInfoList[$val.'.cab'])) {
-                    if(isset($filesInfoList[$val.'.msu'])) unset($filesInfoList[$val.'.msu']);
+                if(isset($filesInfoList[$val.'.cab']) && isset($filesInfoList[$val.'.msu'])) {
+                    unset($filesInfoList[$val.'.msu']);
                 }
             }
             unset($removeMSUs);
@@ -236,13 +239,14 @@ function uupGetFiles(
             $filesInfoKeys = array_keys($filesInfoList);
             $temp = preg_grep('/.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $filesInfoKeys);
 
-            $filesInfoKeys = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\....$/i', $filesInfoKeys);
+            $filesInfoKeys = preg_grep($updatesRegex, $filesInfoKeys);
             if(count($filesInfoKeys) == 0) {
                 return array('error' => 'NOT_CUMULATIVE_UPDATE');
             }
 
             if($build > 21380) $filesInfoKeys = array_merge($filesInfoKeys, $temp);
             unset($temp);
+            $hasUpdates = true;
             break;
 
         case 'WUBFILE':
@@ -257,8 +261,8 @@ function uupGetFiles(
 
     if($fileListSource == 'GENERATEDPACKS') {
         foreach($removeMSUs as $val) {
-            if(isset($filesInfoList[$val.'.cab'])) {
-                if(isset($filesInfoList[$val.'.msu'])) unset($filesInfoList[$val.'.msu']);
+            if(isset($filesInfoList[$val.'.cab']) && isset($filesInfoList[$val.'.msu'])) {
+                unset($filesInfoList[$val.'.msu']);
             }
         }
         unset($removeMSUs);
@@ -270,8 +274,10 @@ function uupGetFiles(
         } else if($build > 21380) {
             $temp = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\....$|.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $temp);
         } else {
-            $temp = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\....$/i', $temp);
+            $temp = preg_grep($updatesRegex, $temp);
         }
+
+        $hasUpdates = !empty(preg_grep($updatesRegex, $temp));
         $filesPacksList = array_merge($filesPacksList, $temp);
 
         $newFiles = array();
@@ -337,31 +343,21 @@ function uupGetFiles(
         'arch' => $updateArch,
         'build' => $updateBuild,
         'sku' => $updateSku,
+        'hasUpdates' => $hasUpdates,
         'files' => $files,
     );
 }
 
 function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
-    $cacheHash = hash('sha256', strtolower("api-get-${updateId}_rev.$rev"));
-    $cached = 0;
+    $res = "api-get-${updateId}_rev.$rev";
+    $cache = new UupDumpCache($res);
+    $fromCache = $cache->get();
+    $cached = ($fromCache !== false);
 
-    if(file_exists('cache/'.$cacheHash.'.json.gz') && $cacheRequests == 1) {
-        $cache = @gzdecode(@file_get_contents('cache/'.$cacheHash.'.json.gz'));
-        $cache = json_decode($cache, 1);
-
-        if(!empty($cache['content']) && ($cache['expires'] > time())) {
-            consoleLogger('Using cached response...');
-            $out = $cache['content'];
-            $fetchTime = $cache['fetchTime'];
-            $cached = 1;
-        } else {
-            $cached = 0;
-        }
-
-        unset($cache);
-    }
-
-    if(!$cached) {
+    if($cached) {
+        $out = $fromCache['out'];
+        $fetchTime = $fromCache['fetchTime'];
+    } else {
         $fetchTime = time();
         consoleLogger('Fetching information from the server...');
         $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev, $type);
@@ -372,7 +368,7 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
     consoleLogger('Parsing information...');
     $xmlOut = @simplexml_load_string($out);
     if($xmlOut === false) {
-        @unlink('cache/'.$cacheHash.'.json.gz');
+        $cache->delete();
         return array('error' => 'XML_PARSE_ERROR');
     }
 
@@ -468,14 +464,12 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
     }
 
     if($cacheRequests == 1 && $cached == 0) {
-        $cache = array(
-            'expires' => time()+90,
-            'content' => $out,
+        $cacheData = [
+            'out' => $out,
             'fetchTime' => $fetchTime,
-        );
+        ];
 
-        if(!file_exists('cache')) mkdir('cache');
-        @file_put_contents('cache/'.$cacheHash.'.json.gz', gzencode(json_encode($cache)."\n"));
+        $cache->put($cacheData, 90);
     }
 
     return $files;

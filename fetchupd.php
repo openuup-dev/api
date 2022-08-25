@@ -17,6 +17,7 @@ limitations under the License.
 
 require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
+require_once dirname(__FILE__).'/shared/cache.php';
 require_once dirname(__FILE__).'/listid.php';
 
 function uupFetchUpd(
@@ -90,23 +91,10 @@ function uupFetchUpd(
         $type = 'Production';
     }
 
-    $cacheHash = hash('sha256', strtolower("api-fetch-$arch-$ring-$flight-$build-$minor-$sku-$type"));
-    $cached = 0;
-
-    if(file_exists('cache/'.$cacheHash.'.json.gz') && $cacheRequests == 1) {
-        $cache = @gzdecode(@file_get_contents('cache/'.$cacheHash.'.json.gz'));
-        $cache = json_decode($cache, 1);
-
-        if(!empty($cache['content']) && ($cache['expires'] > time())) {
-            consoleLogger('Using cached response...');
-            $out = $cache['content'];
-            $cached = 1;
-        } else {
-            $cached = 0;
-        }
-
-        unset($cache);
-    }
+    $res = "api-fetch-$arch-$ring-$flight-$build-$minor-$sku-$type";
+    $cache = new UupDumpCache($res);
+    $out = $cache->get();
+    $cached = ($out !== false);
 
     if(!$cached) {
         consoleLogger('Fetching information from the server...');
@@ -117,15 +105,7 @@ function uupFetchUpd(
         consoleLogger('Information has been successfully fetched.');
 
         if($cacheRequests == 1) {
-            $cache = array(
-                'expires' => time()+120,
-                'content' => $out,
-            );
-
-            if(!file_exists('cache')) mkdir('cache');
-            @file_put_contents('cache/'.$cacheHash.'.json.gz', gzencode(json_encode($cache)."\n"));
-
-            unset($cache);
+            $cache->put($out, 120);
         }
     }
 
