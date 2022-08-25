@@ -47,8 +47,8 @@ class UupDumpCache {
         $expires = $cache['expires'];
         $isExpired = ($expires !== false) && (time() > $expires);
 
-        if(empty($cache['content']) && $isExpired) {
-            $this->deleteCache();
+        if(empty($cache['content']) || $isExpired) {
+            $this->delete();
             return false;
         }
 
