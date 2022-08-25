@@ -142,6 +142,7 @@ function uupGetFiles(
     $updateBuild = (isset($info['build'])) ? $info['build'] : 'UNKNOWN';
     $updateName = (isset($info['title'])) ? $info['title'] : 'Unknown update: '.$updateId;
     $sha256capable = isset($info['sha256ready']);
+    $hasUpdates = false;
 
     if(isset($info['releasetype'])) {
         $type = $info['releasetype'];
@@ -215,6 +216,7 @@ function uupGetFiles(
     unset($index, $name, $msu);
 
     $filesInfoKeys = array_keys($filesInfoList);
+    $updatesRegex = '/Windows(10|11)\.0-KB|SSU-.*?\....$/i';
 
     switch($fileListSource) {
         case 'UPDATEONLY':
@@ -227,8 +229,8 @@ function uupGetFiles(
             unset($removeFiles);
 
             foreach($removeMSUs as $val) {
-                if(isset($filesInfoList[$val.'.cab'])) {
-                    if(isset($filesInfoList[$val.'.msu'])) unset($filesInfoList[$val.'.msu']);
+                if(isset($filesInfoList[$val.'.cab']) && isset($filesInfoList[$val.'.msu'])) {
+                    unset($filesInfoList[$val.'.msu']);
                 }
             }
             unset($removeMSUs);
@@ -236,13 +238,14 @@ function uupGetFiles(
             $filesInfoKeys = array_keys($filesInfoList);
             $temp = preg_grep('/.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $filesInfoKeys);
 
-            $filesInfoKeys = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\....$/i', $filesInfoKeys);
+            $filesInfoKeys = preg_grep($updatesRegex, $filesInfoKeys);
             if(count($filesInfoKeys) == 0) {
                 return array('error' => 'NOT_CUMULATIVE_UPDATE');
             }
 
             if($build > 21380) $filesInfoKeys = array_merge($filesInfoKeys, $temp);
             unset($temp);
+            $hasUpdates = true;
             break;
 
         case 'WUBFILE':
@@ -257,8 +260,8 @@ function uupGetFiles(
 
     if($fileListSource == 'GENERATEDPACKS') {
         foreach($removeMSUs as $val) {
-            if(isset($filesInfoList[$val.'.cab'])) {
-                if(isset($filesInfoList[$val.'.msu'])) unset($filesInfoList[$val.'.msu']);
+            if(isset($filesInfoList[$val.'.cab']) && isset($filesInfoList[$val.'.msu'])) {
+                unset($filesInfoList[$val.'.msu']);
             }
         }
         unset($removeMSUs);
@@ -270,8 +273,10 @@ function uupGetFiles(
         } else if($build > 21380) {
             $temp = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\....$|.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $temp);
         } else {
-            $temp = preg_grep('/Windows(10|11)\.0-KB|SSU-.*?\....$/i', $temp);
+            $temp = preg_grep($updatesRegex, $temp);
         }
+
+        $hasUpdates = !empty(preg_grep($updatesRegex, $temp));
         $filesPacksList = array_merge($filesPacksList, $temp);
 
         $newFiles = array();
@@ -337,6 +342,7 @@ function uupGetFiles(
         'arch' => $updateArch,
         'build' => $updateBuild,
         'sku' => $updateSku,
+        'hasUpdates' => $hasUpdates,
         'files' => $files,
     );
 }
