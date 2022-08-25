@@ -18,6 +18,7 @@ limitations under the License.
 require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
 require_once dirname(__FILE__).'/shared/packs.php';
+require_once dirname(__FILE__).'/shared/cache.php';
 
 /*
 $updateId       = Update Identifier
@@ -348,26 +349,15 @@ function uupGetFiles(
 }
 
 function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
-    $cacheHash = hash('sha256', strtolower("api-get-${updateId}_rev.$rev"));
-    $cached = 0;
+    $res = "api-get-${updateId}_rev.$rev";
+    $cache = new UupDumpCache($res);
+    $fromCache = $cache->get();
+    $cached = ($fromCache !== false);
 
-    if(file_exists('cache/'.$cacheHash.'.json.gz') && $cacheRequests == 1) {
-        $cache = @gzdecode(@file_get_contents('cache/'.$cacheHash.'.json.gz'));
-        $cache = json_decode($cache, 1);
-
-        if(!empty($cache['content']) && ($cache['expires'] > time())) {
-            consoleLogger('Using cached response...');
-            $out = $cache['content'];
-            $fetchTime = $cache['fetchTime'];
-            $cached = 1;
-        } else {
-            $cached = 0;
-        }
-
-        unset($cache);
-    }
-
-    if(!$cached) {
+    if($cached) {
+        $out = $fromCache['out'];
+        $fetchTime = $fromCache['fetchTime'];
+    } else {
         $fetchTime = time();
         consoleLogger('Fetching information from the server...');
         $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev, $type);
@@ -378,7 +368,7 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
     consoleLogger('Parsing information...');
     $xmlOut = @simplexml_load_string($out);
     if($xmlOut === false) {
-        @unlink('cache/'.$cacheHash.'.json.gz');
+        $cache->delete();
         return array('error' => 'XML_PARSE_ERROR');
     }
 
@@ -474,14 +464,12 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
     }
 
     if($cacheRequests == 1 && $cached == 0) {
-        $cache = array(
-            'expires' => time()+90,
-            'content' => $out,
+        $cacheData = [
+            'out' => $out,
             'fetchTime' => $fetchTime,
-        );
+        ];
 
-        if(!file_exists('cache')) mkdir('cache');
-        @file_put_contents('cache/'.$cacheHash.'.json.gz', gzencode(json_encode($cache)."\n"));
+        $cache->put($cacheData, 90);
     }
 
     return $files;
