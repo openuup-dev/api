@@ -17,6 +17,7 @@ limitations under the License.
 
 class UupDumpCache {
     private $cacheFile;
+    private $isCompressed;
     private $newCacheVersion = 1;
 
     public function __construct($resource, $compressed = true) {
@@ -24,6 +25,7 @@ class UupDumpCache {
         $cacheHash = hash('sha256', strtolower($res));
         $ext = $compressed ? '.json.gz' : '.json';
         $this->cacheFile = 'cache/'.$cacheHash.$ext;
+        $this->isCompressed = $compressed;
     }
 
     public function getFileName() {
@@ -41,7 +43,9 @@ class UupDumpCache {
             return false;
         }
 
-        $cache = @gzdecode(@file_get_contents($cacheFile));
+        $cache = @file_get_contents($cacheFile);
+        if($this->isCompressed) $cache = @gzdecode($cache);
+
         $cache = json_decode($cache, 1);
 
         $expires = $cache['expires'];
@@ -65,6 +69,10 @@ class UupDumpCache {
         );
     
         if(!file_exists('cache')) mkdir('cache');
-        @file_put_contents($cacheFile, gzencode(json_encode($cache)."\n"));
+
+        $cacheContent = json_encode($cache)."\n";
+        if($this->isCompressed) $cacheContent = @gzencode($cache);
+
+        @file_put_contents($cacheFile, $cacheContent);
     }
 }
