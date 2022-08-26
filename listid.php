@@ -16,11 +16,18 @@ limitations under the License.
 */
 
 require_once dirname(__FILE__).'/shared/main.php';
+require_once dirname(__FILE__).'/shared/cache.php';
 
-function uupListIds($search = null, $sortByDate = 0) {
-    uupApiPrintBrand();
+function uupApiPrivateInvalidateFileinfoCache() {
+    $cache1 = new UupDumpCache('listid-0', false);
+    $cache2 = new UupDumpCache('listid-1', false);
 
-    if(!file_exists('fileinfo')) return array('error' => 'NO_FILEINFO_DIR');
+    $cache1->delete();
+    $cache2->delete();
+}
+
+function uupApiPrivateGetFromFileinfo($sortByDate = 0) {
+    if(!file_exists('fileinfo')) return false;
 
     $files = scandir('fileinfo');
     $files = preg_grep('/\.json$/', $files);
@@ -105,12 +112,7 @@ function uupListIds($search = null, $sortByDate = 0) {
         $builds[$tmp.$arch.$title.$uuid] = $temp;
     }
 
-    if(empty($buildAssoc)) {
-        return array(
-            'apiVersion' => uupApiVersion(),
-            'builds' => array(),
-        );
-    }
+    if(empty($buildAssoc)) return [];
 
     krsort($buildAssoc);
     $buildsNew = array();
@@ -139,6 +141,26 @@ function uupListIds($search = null, $sortByDate = 0) {
         );
 
         if(!$success) consoleLogger('Failed to update database cache.');
+    }
+
+    return $builds;
+}
+
+function uupListIds($search = null, $sortByDate = 0) {
+    uupApiPrintBrand();
+
+    $sortByDate = $sortByDate ? 1 : 0;
+
+    $res = "listid-$sortByDate";
+    $cache = new UupDumpCache($res, false);
+    $builds = $cache->get();
+    $cached = ($builds !== false);
+
+    if(!$cached) {
+        $builds = uupApiPrivateGetFromFileinfo($sortByDate);
+        if($builds === false) return ['error' => 'NO_FILEINFO_DIR'];
+
+        $cache->put($builds, 60);
     }
 
     if($search) {
