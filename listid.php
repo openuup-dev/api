@@ -163,7 +163,7 @@ function uupListIds($search = null, $sortByDate = 0) {
         $cache->put($builds, 60);
     }
 
-    if($search) {
+    if($search != null) {
         if(!preg_match('/^regex:/', $search)) {
             $searchSafe = preg_quote($search, '/');
 
