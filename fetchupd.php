@@ -353,6 +353,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         if($success) {
             consoleLogger('Successfully written build information to the disk.');
             $fileWrite = 'INFO_WRITTEN';
+            uupApiPrivateInvalidateFileinfoCache();
         } else {
             consoleLogger('An error has occured while writing the information to the disk.');
         }
