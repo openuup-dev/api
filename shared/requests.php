@@ -34,7 +34,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     if($sku == 119) {
         $dvcFamily = 'Windows.Team';
     }
-    if(in_array($sku, [7,8,12,13,79,80,120,145,146,147,148,159,160,406,407,408])) {
+    if(uupApiIsServer($sku)) {
         $dvcFamily = 'Windows.Server';
         $insType = 'Server';
         $blockUpgrades = 1;
@@ -329,7 +329,7 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
     $branch = branchFromBuild($build);
 
     $mainProduct = 'Client.OS.rs2';
-    if(in_array($sku, [7,8,12,13,79,80,120,145,146,147,148,159,160,406,407,408])) {
+    if(uupApiIsServer($sku)) {
         $mainProduct = 'Server.OS';
     }
     /*/ Hololens
