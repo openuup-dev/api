@@ -134,3 +134,19 @@ function uupApiCheckUpdateId($updateId) {
         $updateId
     );
 }
+
+function uupApiIsServer($skuId) {
+    $serverSkus = [
+        7, 8, 12, 13, 79, 80, 120, 145, 146,
+        147, 148, 159, 160, 406, 407, 408
+    ];
+
+    return in_array($skuId, $serverSkus);
+}
+
+function uupApiBuildMajor($build) {
+    if(!str_contains($build, '.')) {
+        return intval($build);
+    }
+    return intval(explode('.', $build)[0]);
+}
