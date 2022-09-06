@@ -147,8 +147,11 @@ function uupApiIsServer($skuId) {
 }
 
 function uupApiBuildMajor($build) {
-    if(!str_contains($build, '.')) {
+    if($build == null)
+        return null;
+
+    if(!str_contains($build, '.'))
         return intval($build);
-    }
+
     return intval(explode('.', $build)[0]);
 }
