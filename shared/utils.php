@@ -64,6 +64,8 @@ function sendWuPostRequest($url, $postData) {
     curl_setopt($req, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($req, CURLOPT_ENCODING, '');
     curl_setopt($req, CURLOPT_POSTFIELDS, $postData);
+    curl_setopt($req, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($req, CURLOPT_TIMEOUT, 15);
     curl_setopt($req, CURLOPT_SSL_VERIFYPEER, 0);
     curl_setopt($req, CURLOPT_HTTPHEADER, array(
         'User-Agent: Windows-Update-Agent/10.0.10011.16384 Client-Protocol/2.50',
@@ -145,8 +147,22 @@ function uupApiIsServer($skuId) {
 }
 
 function uupApiBuildMajor($build) {
-    if(!str_contains($build, '.')) {
+    if($build == null)
+        return null;
+
+    if(!str_contains($build, '.'))
         return intval($build);
-    }
+
     return intval(explode('.', $build)[0]);
+}
+
+function uupApiFixDownloadLink($link) {
+    if($link == null)
+        return null;
+
+    return str_replace(
+        'http://tlu.dl.delivery.mp.microsoft.com',
+        'https://uupdump.sf.tlu.dl.delivery.mp.microsoft.com',
+        $link
+    );
 }

@@ -329,7 +329,7 @@ function uupGetFiles(
     $filesNew = array();
     foreach($filesInfoKeys as $val) {
        $filesNew[$val] = $filesInfoList[$val];
-       $filesNew[$val]['url'] = str_replace('http://tlu.dl.delivery.mp.microsoft.com', 'https://uupdump.sf.tlu.dl.delivery.mp.microsoft.com', $filesInfoList[$val]['url']);
+       $filesNew[$val]['url'] = uupApiFixDownloadLink($filesInfoList[$val]['url']);
     }
 
     $files = $filesNew;

@@ -82,7 +82,7 @@ Parameters:
    - **Supported values:** any update UUID
 
 
-#### updateinfo.php: `uupUpdateInfo($updateId, $onlyInfo);`
+#### updateinfo.php: `uupUpdateInfo($updateId, $onlyInfo, $ignoreFiles);`
 Outputs specified information of specified `updateId`.
 
 Parameters:
@@ -92,11 +92,35 @@ Parameters:
  - `onlyInfo` - Key to output
    - **Supported values:** any string
 
+ - `ignoreFiles` - Skips the `files` key in the output
+   - **Supported values:** `true` or `false`
+
 #### shared/main.php: `uupApiVersion();`
 Returns version of the API.
 
 Parameters:
  - None
+
+#### shared/utils.php: `uupApiCheckUpdateId($updateId);`
+Checks if the provided update ID is correctly formatted.
+
+Parameters:
+ - `updateId` - update ID to check
+   - **Supported values:** Any string
+
+#### shared/utils.php: `uupApiIsServer($skuId);`
+Checks if the provided SKU ID is a Windows Sever SKU.
+
+Parameters:
+ - `skuId` - SKU ID to check
+   - **Supported values:** Any integer
+
+#### shared/utils.php: `uupApiBuildMajor($build);`
+Returns a build major of the build number.
+
+Parameters:
+ - `build` - Build number (for example 22621.1) to split
+   - **Supported values:** Any correctly formatted build number
 
 ### Error codes thrown by API
 **fetchupd.php**
