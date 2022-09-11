@@ -34,7 +34,7 @@ function uupApiPrivateGetFromFileinfo($sortByDate = 0) {
 
     consoleLogger('Parsing database info...');
 
-    $cacheFile = 'cache/fileinfo_v2.json';
+    $cacheFile = 'fileinfo/?cache.json';
     $cacheV2Version = 1;
 
     $database = @file_get_contents($cacheFile);
@@ -57,7 +57,9 @@ function uupApiPrivateGetFromFileinfo($sortByDate = 0) {
     $newDb = array();
     $builds = array();
     foreach($files as $file) {
-        if($file == '.' || $file == '..') continue;
+        if($file == '.' || $file == '..' || $file == '?cache.json')
+            continue;
+
         $uuid = preg_replace('/\.json$/', '', $file);
 
         if(!isset($database[$uuid])) {
