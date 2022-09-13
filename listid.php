@@ -17,6 +17,7 @@ limitations under the License.
 
 require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/cache.php';
+require_once dirname(__FILE__).'/shared/fileinfo.php';
 
 function uupApiPrivateInvalidateFileinfoCache() {
     $cache1 = new UupDumpCache('listid-0', false);
@@ -27,18 +28,19 @@ function uupApiPrivateInvalidateFileinfoCache() {
 }
 
 function uupApiPrivateGetFromFileinfo($sortByDate = 0) {
-    if(!file_exists('fileinfo')) return false;
+    $dirs = uupApiGetFileinfoDirs();
+    $fileinfo = $dirs['fileinfoData'];
+    $fileinfoRoot = $dirs['fileinfo'];
 
-    $files = scandir('fileinfo');
+    $files = scandir($fileinfo);
     $files = preg_grep('/\.json$/', $files);
 
     consoleLogger('Parsing database info...');
 
-    $cacheFile = 'fileinfo/?cache.json';
+    $cacheFile = $fileinfoRoot.'/cache.json';
     $cacheV2Version = 1;
 
-    $database = @file_get_contents($cacheFile);
-    $database = json_decode($database, true);
+    $database = uupApiReadJson($cacheFile);
 
     if(isset($database['version'])) {
         $version = $database['version'];
@@ -57,14 +59,13 @@ function uupApiPrivateGetFromFileinfo($sortByDate = 0) {
     $newDb = array();
     $builds = array();
     foreach($files as $file) {
-        if($file == '.' || $file == '..' || $file == '?cache.json')
+        if($file == '.' || $file == '..')
             continue;
 
         $uuid = preg_replace('/\.json$/', '', $file);
 
         if(!isset($database[$uuid])) {
-            $info = @file_get_contents('fileinfo/'.$file);
-            $info = json_decode($info, true);
+            $info = uupApiReadFileinfoMeta($uuid);
 
             $title = isset($info['title']) ? $info['title'] : 'UNKNOWN';
             $build = isset($info['build']) ? $info['build'] : 'UNKNOWN';
