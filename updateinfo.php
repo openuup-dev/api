@@ -17,36 +17,10 @@ limitations under the License.
 
 require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/cache.php';
-
-function uupApiPrivateGetFileinfo($updateId, $ignoreFiles) {
-    $cached = false;
-
-    if($ignoreFiles) {
-        $res = "fileinfo-fileless-$updateId";
-        $cache = new UupDumpCache($res, false);
-        $info = $cache->get();
-        $cached = ($info !== false);
-    }
-
-    if(!$cached) {
-        $info = @file_get_contents('fileinfo/'.$updateId.'.json');
-        if(empty($info)) return false;
-        $info = json_decode($info, true);
-    }
-
-    if($ignoreFiles) {
-        if(isset($info['files'])) unset($info['files']);
-
-        if(!$cached) {
-            $cache->put($info, false);
-        }
-    }
-
-    return $info;
-}
+require_once dirname(__FILE__).'/shared/fileinfo.php';
 
 function uupUpdateInfo($updateId, $onlyInfo = 0, $ignoreFiles = false) {
-    $info = uupApiPrivateGetFileinfo($updateId, $ignoreFiles);
+    $info = uupApiReadFileinfo($updateId, $ignoreFiles);
     if($info === false) {
         return ['error' => 'UPDATE_INFORMATION_NOT_EXISTS'];
     }
