@@ -19,6 +19,7 @@ require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
 require_once dirname(__FILE__).'/shared/packs.php';
 require_once dirname(__FILE__).'/shared/cache.php';
+require_once dirname(__FILE__).'/shared/fileinfo.php';
 
 /*
 $updateId       = Update Identifier
@@ -43,10 +44,10 @@ function uupGetFiles(
     }
 
     if(!uupApiCheckUpdateId($updateId)) {
-            return array('error' => 'INCORRECT_ID');
+        return array('error' => 'INCORRECT_ID');
     }
 
-    $info = @file_get_contents('fileinfo/'.$updateId.'.json');
+    $info = uupApiReadFileinfo($updateId);
     if(empty($info)) {
         $info = array(
             'ring' => 'WIF',
@@ -56,8 +57,6 @@ function uupGetFiles(
             'sku' => '48',
             'files' => array(),
         );
-    } else {
-        $info = json_decode($info, true);
     }
 
     if(isset($info['build'])) {

@@ -166,3 +166,16 @@ function uupApiFixDownloadLink($link) {
         $link
     );
 }
+
+function uupApiReadJson($path) {
+    $data = @file_get_contents($path);
+
+    if(empty($data))
+        return false;
+
+    return json_decode($data, true);
+}
+
+function uupApiWriteJson($path, $data) {
+    return file_put_contents($path, json_encode($data)."\n");
+}

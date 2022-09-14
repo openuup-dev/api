@@ -18,6 +18,7 @@ limitations under the License.
 require_once dirname(__FILE__).'/shared/main.php';
 require_once dirname(__FILE__).'/shared/requests.php';
 require_once dirname(__FILE__).'/shared/cache.php';
+require_once dirname(__FILE__).'/shared/fileinfo.php';
 require_once dirname(__FILE__).'/listid.php';
 
 function uupFetchUpd(
@@ -288,10 +289,9 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
     }
 
     $fileWrite = 'NO_SAVE';
-    if(!file_exists('fileinfo/'.$updateString.'.json')) {
+    if(!uupApiFileInfoExists($updateId)) {
         consoleLogger('WARNING: This build is NOT in the database. It will be saved now.');
         consoleLogger('Parsing information to write...');
-        if(!file_exists('fileinfo')) mkdir('fileinfo');
 
         $fileList = preg_replace('/<Files>|<\/Files>/', '', $fileList[0]);
         preg_match_all('/<File.*?<\/File>/', $fileList, $fileList);
@@ -349,7 +349,7 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         consoleLogger('Successfully parsed the information.');
         consoleLogger('Writing new build information to the disk...');
 
-        $success = file_put_contents('fileinfo/'.$updateString.'.json', json_encode($temp)."\n");
+        $success = uupApiWriteFileinfo($updateString, $temp);
         if($success) {
             consoleLogger('Successfully written build information to the disk.');
             $fileWrite = 'INFO_WRITTEN';
