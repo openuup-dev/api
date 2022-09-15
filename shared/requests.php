@@ -184,6 +184,10 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'WuClientVer='.$build,
     );
 
+    if($ring == 'MSIT' && uupApiConfigIsTrue('allow_corpnet')) {
+        $attrib[] = 'DUInternal=1';
+    }
+
     return htmlentities('E:'.implode('&', $attrib));
 }
 

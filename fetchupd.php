@@ -283,7 +283,8 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
         return array('error' => 'BROKEN_UPDATE');
     }
 
-    if(preg_match('/Corpnet Required/i', $updateTitle)) {
+    $isCorpnet = preg_match('/Corpnet Required/i', $updateTitle);
+    if($isCorpnet && !uupApiConfigIsTrue('allow_corpnet')) {
         consoleLogger('Skipping corpnet only update...');
         return array('error' => 'CORPNET_ONLY_UPDATE');
     }
