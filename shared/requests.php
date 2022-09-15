@@ -406,6 +406,9 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $type
     );
 
+    $syncCurrent = uupApiConfigIsTrue('fetch_sync_current_only');
+    $syncCurrentStr = $syncCurrent ? 'true' : 'false';
+
     return <<<XML
 <s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope">
     <s:Header>
@@ -527,7 +530,7 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
                 </ExtendedUpdateInfoParameters>
                 <ClientPreferredLanguages/>
                 <ProductsParameters>
-                    <SyncCurrentVersionOnly>false</SyncCurrentVersionOnly>
+                    <SyncCurrentVersionOnly>$syncCurrentStr</SyncCurrentVersionOnly>
                     <DeviceAttributes>$deviceAttributes</DeviceAttributes>
                     <CallerAttributes>$callerAttrib</CallerAttributes>
                     <Products>$products</Products>
