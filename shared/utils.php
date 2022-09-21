@@ -179,3 +179,16 @@ function uupApiReadJson($path) {
 function uupApiWriteJson($path, $data) {
     return file_put_contents($path, json_encode($data)."\n");
 }
+
+function uupApiPacksExist($updateId) {
+    return file_exists('packs/'.$updateId.'.json.gz');
+}
+
+function uupApiConfigIsTrue($config) {
+    $data = uupDumpApiGetConfig();
+
+    if(!isset($data[$config]))
+        return false;
+
+    return $data[$config] == true;
+}
