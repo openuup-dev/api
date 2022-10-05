@@ -157,14 +157,7 @@ function uupApiBuildMajor($build) {
 }
 
 function uupApiFixDownloadLink($link) {
-    if($link == null)
-        return null;
-
-    return str_replace(
-        'http://tlu.dl.delivery.mp.microsoft.com',
-        'https://uupdump.sf.tlu.dl.delivery.mp.microsoft.com',
-        $link
-    );
+    return $link;
 }
 
 function uupApiReadJson($path) {
