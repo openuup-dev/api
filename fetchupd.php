@@ -94,21 +94,15 @@ function uupFetchUpd(
 
     $res = "api-fetch-$arch-$ring-$flight-$build-$minor-$sku-$type";
     $cache = new UupDumpCache($res);
-    $out = $cache->get();
-    $cached = ($out !== false);
+    $fromCache = $cache->get();
+    if($fromCache !== false) return $fromCache;
 
-    if(!$cached) {
-        consoleLogger('Fetching information from the server...');
-        $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build, $sku, $type);
-        $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
+    consoleLogger('Fetching information from the server...');
+    $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build, $sku, $type);
+    $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
 
-        $out = html_entity_decode($out);
-        consoleLogger('Information has been successfully fetched.');
-
-        if($cacheRequests == 1) {
-            $cache->put($out, 120);
-        }
-    }
+    $out = html_entity_decode($out);
+    consoleLogger('Information has been successfully fetched.');
 
     preg_match_all('/<UpdateInfo>.*?<\/UpdateInfo>/', $out, $updateInfos);
     $updateInfo = preg_grep('/<IsLeaf>true<\/IsLeaf>/', $updateInfos[0]);
@@ -141,7 +135,7 @@ function uupFetchUpd(
         return array('error' => 'EMPTY_FILELIST');
     }
 
-    return array(
+    $data = [
         'apiVersion' => uupApiVersion(),
         'updateId' => $updateArray[0]['updateId'],
         'updateTitle' => $updateArray[0]['updateTitle'],
@@ -149,7 +143,13 @@ function uupFetchUpd(
         'arch' => $updateArray[0]['arch'],
         'fileWrite' => $updateArray[0]['fileWrite'],
         'updateArray' => $updateArray,
-    );
+    ];
+
+    if($cacheRequests == 1) {
+        $cache->put($data, 120);
+    }
+
+    return $data;
 }
 
 function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku, $type) {

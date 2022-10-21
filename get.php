@@ -47,6 +47,12 @@ function uupGetFiles(
         return array('error' => 'INCORRECT_ID');
     }
 
+    $edition = is_array($desiredEdition) ? implode('_', $desiredEdition) : $desiredEdition;
+    $res = "api-get-${updateId}_${usePack}_${edition}_${requestType}";
+    $cache = new UupDumpCache($res);
+    $fromCache = $cache->get();
+    if($fromCache !== false) return $fromCache;
+
     $info = uupApiReadFileinfo($updateId);
     if(empty($info)) {
         $info = array(
@@ -155,7 +161,7 @@ function uupGetFiles(
     }
 
     if($requestType < 2) {
-        $filesInfoList = uupGetOnlineFiles($updateId, $rev, $info, $requestType, $type);
+        $filesInfoList = uupGetOnlineFiles($updateId, $rev, $info, $type);
     } else {
         $filesInfoList = uupGetOfflineFiles($info);
     }
@@ -336,7 +342,7 @@ function uupGetFiles(
 
     consoleLogger('Successfully parsed the information.');
 
-    return array(
+    $data = [
         'apiVersion' => uupApiVersion(),
         'updateName' => $updateName,
         'arch' => $updateArch,
@@ -344,25 +350,22 @@ function uupGetFiles(
         'sku' => $updateSku,
         'hasUpdates' => $hasUpdates,
         'files' => $files,
-    );
+    ];
+
+    if($requestType > 0) {
+        $cacheData = $data;
+        $cache->put($cacheData, 90);
+    }
+
+    return $data;
 }
 
-function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
-    $res = "api-get-${updateId}_rev.$rev";
-    $cache = new UupDumpCache($res);
-    $fromCache = $cache->get();
-    $cached = ($fromCache !== false);
-
-    if($cached) {
-        $out = $fromCache['out'];
-        $fetchTime = $fromCache['fetchTime'];
-    } else {
-        $fetchTime = time();
-        consoleLogger('Fetching information from the server...');
-        $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev, $type);
-        $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
-        consoleLogger('Information has been successfully fetched.');
-    }
+function uupGetOnlineFiles($updateId, $rev, $info, $type) {
+    $fetchTime = time();
+    consoleLogger('Fetching information from the server...');
+    $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev, $type);
+    $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
+    consoleLogger('Information has been successfully fetched.');
 
     consoleLogger('Parsing information...');
     $xmlOut = @simplexml_load_string($out);
@@ -460,15 +463,6 @@ function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
 
             $files[$newName] = $temp;
         }
-    }
-
-    if($cacheRequests == 1 && $cached == 0) {
-        $cacheData = [
-            'out' => $out,
-            'fetchTime' => $fetchTime,
-        ];
-
-        $cache->put($cacheData, 90);
     }
 
     return $files;
