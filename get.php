@@ -161,7 +161,7 @@ function uupGetFiles(
     }
 
     if($requestType < 2) {
-        $filesInfoList = uupGetOnlineFiles($updateId, $rev, $info, $type);
+        $filesInfoList = uupGetOnlineFiles($updateId, $rev, $info, $requestType, $type);
     } else {
         $filesInfoList = uupGetOfflineFiles($info);
     }
@@ -354,18 +354,28 @@ function uupGetFiles(
 
     if($requestType > 0) {
         $cacheData = $data;
-        $cache->put($cacheData, 90);
+        $cache->put($cacheData, 30);
     }
 
     return $data;
 }
 
-function uupGetOnlineFiles($updateId, $rev, $info, $type) {
-    $fetchTime = time();
-    consoleLogger('Fetching information from the server...');
-    $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev, $type);
-    $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
-    consoleLogger('Information has been successfully fetched.');
+function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
+    $res = "api-get-online-${updateId}_rev.$rev";
+    $cache = new UupDumpCache($res);
+    $fromCache = $cache->get();
+    $cached = ($fromCache !== false);
+
+    if($cached) {
+        $out = $fromCache['out'];
+        $fetchTime = $fromCache['fetchTime'];
+    } else {
+        $fetchTime = time();
+        consoleLogger('Fetching information from the server...');
+        $postData = composeFileGetRequest($updateId, uupDevice(), $info, $rev, $type);
+        $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx/secured', $postData);
+        consoleLogger('Information has been successfully fetched.');
+    }
 
     consoleLogger('Parsing information...');
     $xmlOut = @simplexml_load_string($out);
@@ -463,6 +473,15 @@ function uupGetOnlineFiles($updateId, $rev, $info, $type) {
 
             $files[$newName] = $temp;
         }
+    }
+
+    if($cacheRequests == 1 && $cached == 0) {
+        $cacheData = [
+            'out' => $out,
+            'fetchTime' => $fetchTime,
+        ];
+
+        $cache->put($cacheData, 90);
     }
 
     return $files;
