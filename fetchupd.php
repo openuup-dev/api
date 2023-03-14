@@ -39,14 +39,18 @@ function uupFetchUpd(
     $flight = 'Active';
 
     if($build == 'latest' || (!$build)) {
-        $builds = array('17134.1');
+        $builds = array('22000.1');
 
         $ids = uupListIds();
         if(isset($ids['error'])) {
             $ids['builds'] = array();
         }
 
-        $build = $ids['builds'][0]['build'];
+        if(empty($ids['builds'])) {
+            $build = $builds[0];
+        } else {
+            $build = $ids['builds'][0]['build'];
+        }
         unset($builds, $ids);
     }
 
@@ -59,7 +63,7 @@ function uupFetchUpd(
         return array('error' => 'UNKNOWN_ARCH');
     }
 
-    if(!($ring == 'DEV' || $ring == 'BETA' || $ring == 'RELEASEPREVIEW' || $ring == 'WIF' || $ring == 'WIS' || $ring == 'RP' || $ring == 'RETAIL' || $ring == 'MSIT')) {
+    if(!($ring == 'CANARY' || $ring == 'DEV' || $ring == 'BETA' || $ring == 'RELEASEPREVIEW' || $ring == 'WIF' || $ring == 'WIS' || $ring == 'RP' || $ring == 'RETAIL' || $ring == 'MSIT')) {
         return array('error' => 'UNKNOWN_RING');
     }
 

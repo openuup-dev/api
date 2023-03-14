@@ -94,6 +94,11 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         $fltRing = 'Internal';
     }
 
+    if($ring == 'CANARY') {
+        $fltBranch = 'CanaryChannel';
+        $ring = 'WIF';
+    }
+
     $bldnum = explode('.', $build);
     $bldnum = $bldnum[2];
 
@@ -107,14 +112,20 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=177',
+        'AttrDataVer=208',
         'AllowInPlaceUpgrade=1',
         'AllowUpgradesWithUnsupportedTPMOrCPU=1',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
         'CurrentBranch='.$branch,
+        'DataExpDateEpoch_CU23H2='.(time()+82800),
+        'DataExpDateEpoch_CU23H2Setup='.(time()+82800),
+        'DataExpDateEpoch_NI22H2='.(time()+82800),
+        'DataExpDateEpoch_NI22H2Setup='.(time()+82800),
         'DataExpDateEpoch_CO21H2='.(time()+82800),
         'DataExpDateEpoch_CO21H2Setup='.(time()+82800),
+        'DataExpDateEpoch_23H2='.(time()+82800),
+        'DataExpDateEpoch_22H2='.(time()+82800),
         'DataExpDateEpoch_21H2='.(time()+82800),
         'DataExpDateEpoch_21H1='.(time()+82800),
         'DataExpDateEpoch_20H1='.(time()+82800),
@@ -128,8 +139,14 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         //'FlightContent='.$fltContent,
         'FlightRing='.$fltRing,
         'Free=gt64',
+        'GStatus_CU23H2=2',
+        'GStatus_CU23H2Setup=2',
+        'GStatus_NI22H2=2',
+        'GStatus_NI22H2Setup=2',
         'GStatus_CO21H2=2',
         'GStatus_CO21H2Setup=2',
+        'GStatus_23H2=2',
+        'GStatus_22H2=2',
         'GStatus_21H2=2',
         'GStatus_21H1=2',
         'GStatus_20H1=2',
@@ -151,6 +168,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'OEMModel=Asus ROG Maximus Z690 Extreme',
         'OEMModelBaseBoard=ROG MAXIMUS Z690 EXTREME',
         'OEMName_Uncleaned=ASUSTeK COMPUTER INC.',
+        'OemPartnerRing=UPSFlighting',
         'OSArchitecture='.$arch,
         'OSSkuId='.$sku,
         'OSUILocale=en-US',
@@ -163,8 +181,14 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'SdbVer_19H1=2000000000',
         'SecureBootCapable=1',
         'TelemetryLevel=3',
+        'TimestampEpochString_CU23H2='.(time()-3600),
+        'TimestampEpochString_CU23H2Setup='.(time()-3600),
+        'TimestampEpochString_NI22H2='.(time()-3600),
+        'TimestampEpochString_NI22H2Setup='.(time()-3600),
         'TimestampEpochString_CO21H2='.(time()-3600),
         'TimestampEpochString_CO21H2Setup='.(time()-3600),
+        'TimestampEpochString_23H2='.(time()-3600),
+        'TimestampEpochString_22H2='.(time()-3600),
         'TimestampEpochString_21H2='.(time()-3600),
         'TimestampEpochString_21H1='.(time()-3600),
         'TimestampEpochString_20H1='.(time()-3600),
@@ -172,17 +196,26 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'TPMVersion=2',
         'UpdateManagementGroup=2',
         'UpdateOfferedDays=0',
+        'UpgEx_CU23H2=Green',
         'UpgEx_NI22H2=Green',
         'UpgEx_CO21H2=Green',
+        'UpgEx_23H2=Green',
+        'UpgEx_22H2=Green',
         'UpgEx_21H2=Green',
         'UpgEx_21H1=Green',
         'UpgEx_20H1=Green',
         'UpgEx_19H1=Green',
         'UpgEx_RS5=Green',
+        'UpgradeAccepted=1',
         'UpgradeEligible=1',
+        'UserInPlaceUpgrade=1',
         'Version_RS5=2000000000',
         'WuClientVer='.$build,
     );
+
+    if(uupApiConfigIsTrue('fetch_sync_current_only')) {
+        $attrib[] = 'MediaBranch='.$branch;
+    }
 
     if($ring == 'MSIT' && uupApiConfigIsTrue('allow_corpnet')) {
         $attrib[] = 'DUInternal=1';

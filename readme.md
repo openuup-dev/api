@@ -10,7 +10,7 @@ Parameters:
    - **Supported values:** `amd64`, `x86`, `arm64`, `all`
 
  - `ring` - Channel to use when fetching information (Previously called Ring)
-   - **Supported values:** `Dev`, `Beta`, `ReleasePreview`, `Retail`
+   - **Supported values:** `Canary`, `Dev`, `Beta`, `ReleasePreview`, `Retail`
    - **Supported Ring values :** `WIF`, `WIS`, `RP`
 
  - `flight` - Content type to use when fetching information (Previously called Flight)
