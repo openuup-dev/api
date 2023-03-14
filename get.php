@@ -48,7 +48,7 @@ function uupGetFiles(
     }
 
     $edition = is_array($desiredEdition) ? implode('_', $desiredEdition) : $desiredEdition;
-    $res = "api-get-${updateId}_${usePack}_${edition}_${requestType}";
+    $res = "api-get-{$updateId}_{$usePack}_{$edition}_{$requestType}";
     $cache = new UupDumpCache($res);
     $fromCache = $cache->get();
     if($fromCache !== false) return $fromCache;
@@ -175,16 +175,34 @@ function uupGetFiles(
         if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
     }
 
-    $baseless = preg_grep('/^baseless_|Windows(10|11)\.0-KB.*-EXPRESS|SSU-.*-EXPRESS/i', array_keys($filesInfoList));
+    $baseless = preg_grep('/^baseless_/i', array_keys($filesInfoList));
     foreach($baseless as $val) {
         if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
     }
+
+    $expresscab = preg_grep('/Windows(10|11)\.0-KB.*-EXPRESS|SSU-.*-EXPRESS/i', array_keys($filesInfoList));
+
+    $expresspsf = array();
+    foreach($expresscab as $val) {
+        $name = preg_replace('/-EXPRESS.cab$/i', '', $val);
+        $expresspsf[] = $name;
+        if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
+    }
+    unset($index, $name, $expresscab);
+
+    foreach($expresspsf as $val) {
+        if(isset($filesInfoList[$val.'.cab'])) {
+            if(isset($filesInfoList[$val.'.psf'])) unset($filesInfoList[$val.'.psf']);
+        }
+    }
+    unset($expresspsf);
 
     $psf = array_keys($filesInfoList);
     $psf = preg_grep('/\.psf$/i', $psf);
 
     $psfk = preg_grep('/Windows(10|11)\.0-KB.*/i', $psf);
     $psfk = preg_grep('/.*-EXPRESS/i', $psfk, PREG_GREP_INVERT);
+    if($build < 17763) $psfk = preg_grep('/Windows(10|11)\.0-KB.*_\d\.psf$/i', $psfk, PREG_GREP_INVERT);
     foreach($psfk as $key => $val) {
         if(isset($psf[$key])) unset($psf[$key]);
     }
@@ -227,7 +245,7 @@ function uupGetFiles(
     switch($fileListSource) {
         case 'UPDATEONLY':
             $skipPackBuild = 1;
-            $removeFiles = preg_grep('/Windows(10|11)\.0-KB.*-EXPRESS|Windows(10|11)\.0-KB.*-baseless|SSU-.*-.{3,5}-EXPRESS/i', $filesInfoKeys);
+            $removeFiles = preg_grep('/Windows(10|11)\.0-KB.*-baseless/i', $filesInfoKeys);
 
             foreach($removeFiles as $val) {
                 if(isset($filesInfoList[$val])) unset($filesInfoList[$val]);
@@ -273,7 +291,7 @@ function uupGetFiles(
         unset($removeMSUs);
         $filesInfoKeys = array_keys($filesInfoList);
 
-        $temp = preg_grep('/Windows(10|11)\.0-KB.*-EXPRESS|Windows(10|11)\.0-KB.*-baseless|SSU-.*-.{3,5}-EXPRESS/i', $filesInfoKeys, PREG_GREP_INVERT);
+        $temp = preg_grep('/Windows(10|11)\.0-KB.*-baseless/i', $filesInfoKeys, PREG_GREP_INVERT);
         if($appEdition) {
             $temp = preg_grep('/.*?AggregatedMetadata.*?\.cab|.*?DesktopDeployment.*?\.cab/i', $temp);
         } else if($build > 21380) {
@@ -361,7 +379,7 @@ function uupGetFiles(
 }
 
 function uupGetOnlineFiles($updateId, $rev, $info, $cacheRequests, $type) {
-    $res = "api-get-online-${updateId}_rev.$rev";
+    $res = "api-get-online-{$updateId}_rev.$rev";
     $cache = new UupDumpCache($res);
     $fromCache = $cache->get();
     $cached = ($fromCache !== false);
