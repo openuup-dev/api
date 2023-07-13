@@ -112,11 +112,12 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=208',
+        'AttrDataVer=226',
         'AllowInPlaceUpgrade=1',
         'AllowUpgradesWithUnsupportedTPMOrCPU=1',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
+        'CIOptin=1',
         'CurrentBranch='.$branch,
         'DataExpDateEpoch_CU23H2='.(time()+82800),
         'DataExpDateEpoch_CU23H2Setup='.(time()+82800),
@@ -167,7 +168,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'DUScan=1',
         'OEMModel=Asus ROG Maximus Z690 Extreme',
         'OEMModelBaseBoard=ROG MAXIMUS Z690 EXTREME',
-        'OEMName_Uncleaned=ASUSTeK COMPUTER INC.',
+        'OEMName_Uncleaned=Contoso Corporation',
         'OemPartnerRing=UPSFlighting',
         'OSArchitecture='.$arch,
         'OSSkuId='.$sku,
@@ -280,6 +281,10 @@ function branchFromBuild($build) {
 
         case 22621:
             $branch = 'ni_release';
+            break;
+
+        case 25398:
+            $branch = 'zn_release';
             break;
 
         default:
