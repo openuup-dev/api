@@ -63,6 +63,7 @@ function uupGetInfoTexts() {
 
     $fancyEditionNames = array(
         'APP' => 'Microsoft Store Inbox Apps',
+        'APP_MOMENT' => 'Microsoft Store Moment Apps',
         'FOD' => 'Features on Demand (Capabilities)',
         'CLOUD' => 'Windows S',
         'CLOUDN' => 'Windows S N',
