@@ -113,14 +113,18 @@ function uupGetFiles(
             case 'UPDATEONLY': break;
 
             case 'APP': $appEdition = 1;
+            case 'APP_MOMENT': $appEdition = 1;
 
             default:
                 if(!isset($genPack[$usePack][$desiredEdition])) {
                     return array('error' => 'UNSUPPORTED_COMBINATION');
                 }
 
-                $filesPacksList = $genPack[$usePack][$desiredEdition];
                 $fileListSource = 'GENERATEDPACKS';
+                $filesPacksList = $genPack[$usePack][$desiredEdition];
+                if($desiredEdition == 'APP' && isset($genPack[$usePack]['APP_MOMENT'])) {
+                    $filesPacksList = array_merge($filesPacksList, $genPack[$usePack]['APP_MOMENT']);
+                }
                 break;
         }
     } else {
@@ -133,6 +137,7 @@ function uupGetFiles(
                 return array('error' => 'UNSUPPORTED_COMBINATION');
             }
 
+            if($edition == 'APP' || $edition == 'APP_MOMENT') $appEdition = 1;
             $filesPacksList = array_merge($filesPacksList, $genPack[$usePack][$edition]);
         }
     }

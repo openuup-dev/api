@@ -112,8 +112,9 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
     $attrib = array(
         'App=WU_OS',
         'AppVer='.$build,
-        'AttrDataVer=226',
+        'AttrDataVer=247',
         'AllowInPlaceUpgrade=1',
+        'AllowOptionalContent=1',
         'AllowUpgradesWithUnsupportedTPMOrCPU=1',
         'BlockFeatureUpdates='.$blockUpgrades,
         'BranchReadinessLevel=CB',
@@ -134,6 +135,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         'DataVer_RS5=2000000000',
         'DefaultUserRegion=191',
         'DeviceFamily='.$dvcFamily,
+        'DeviceInfoGatherSuccessful=1',
         'EKB19H2InstallCount=1',
         'EKB19H2InstallTimeEpoch=1255000000',
         'FlightingBranchName='.$fltBranch,
@@ -271,7 +273,6 @@ function branchFromBuild($build) {
 
         case 20348:
         case 20349:
-        case 20350:
             $branch = 'fe_release';
             break;
 
@@ -280,6 +281,7 @@ function branchFromBuild($build) {
             break;
 
         case 22621:
+        case 22631:
             $branch = 'ni_release';
             break;
 
@@ -410,6 +412,8 @@ function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build
         $products[] = "PN=Adobe.Flash.$currArch&Repairable=1&V=0.0.0.0";
         $products[] = "PN=Microsoft.Edge.Stable.$currArch&Repairable=1&V=0.0.0.0";
         $products[] = "PN=Microsoft.NETFX.$currArch&V=2018.12.2.0";
+        $products[] = "PN=Windows.Autopilot.$currArch&Repairable=1&V=0.0.0.0";
+        $products[] = "PN=Windows.AutopilotOOBE.$currArch&Repairable=1&V=0.0.0.0";
         $products[] = "PN=Windows.Appraiser.$currArch&Repairable=1&V=$build";
         $products[] = "PN=Windows.AppraiserData.$currArch&Repairable=1&V=$build";
         $products[] = "PN=Windows.EmergencyUpdate.$currArch&V=$build";
