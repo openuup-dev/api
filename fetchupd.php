@@ -102,10 +102,14 @@ function uupFetchUpd(
     if($fromCache !== false) return $fromCache;
 
     consoleLogger('Fetching information from the server...');
-    $postData = composeFetchUpdRequest(uupDevice(), uupEncryptedData(), $arch, $flight, $ring, $build, $sku, $type);
-    $out = sendWuPostRequest('https://fe3cr.delivery.mp.microsoft.com/ClientWebService/client.asmx', $postData);
+    $composerArgs = [$arch, $flight, $ring, $build, $sku, $type];
+    $out = sendWuPostRequestHelper('client', 'composeFetchUpdRequest', $composerArgs);
+    if($out['error'] != 200) {
+        consoleLogger('The request has failed');
+        return array('error' => 'WU_REQUEST_FAILED');
+    }
 
-    $out = html_entity_decode($out);
+    $out = html_entity_decode($out['out']);
     consoleLogger('Information has been successfully fetched.');
 
     preg_match_all('/<UpdateInfo>.*?<\/UpdateInfo>/', $out, $updateInfos);

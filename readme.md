@@ -132,6 +132,7 @@ Parameters:
  - ILLEGAL_MINOR
  - NO_UPDATE_FOUND
  - EMPTY_FILELIST
+ - WU_REQUEST_FAILED
 
 **get.php**
  - UNSUPPORTED_LANG
@@ -142,6 +143,7 @@ Parameters:
  - MISSING_FILES
  - NO_FILES
  - XML_PARSE_ERROR
+ - WU_REQUEST_FAILED
 
 **listeditions.php**
  - UNSUPPORTED_LANG

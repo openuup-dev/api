@@ -298,7 +298,8 @@ function branchFromBuild($build) {
 }
 
 // Composes POST data for gathering list of urls for download
-function composeFileGetRequest($updateId, $device, $info, $rev = 1, $type = 'Production') {
+function composeFileGetRequest($updateId, $info, $rev = 1, $type = 'Production') {
+    $device = uupDevice();
     $uuid = genUUID();
 
     $createdTime = time();
@@ -359,7 +360,9 @@ XML;
 }
 
 // Composes POST data for fetching the latest update information from Windows Update
-function composeFetchUpdRequest($device, $encData, $arch, $flight, $ring, $build, $sku = 48, $type = 'Production') {
+function composeFetchUpdRequest($arch, $flight, $ring, $build, $sku = 48, $type = 'Production') {
+    $device = uupDevice();
+    $encData = uupEncryptedData();
     $uuid = genUUID();
 
     $createdTime = time();
@@ -585,7 +588,8 @@ XML;
 }
 
 // Composes POST data for Get Cookie request
-function composeGetCookieRequest($device) {
+function composeGetCookieRequest() {
+    $device = uupDevice();
     $uuid = genUUID();
 
     $createdTime = time();
