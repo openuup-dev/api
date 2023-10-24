@@ -50,12 +50,12 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type) {
         $insType = 'FactoryOS';
     }
 
+    $fltBranch = '';
     $fltContent = 'Mainline';
     $fltRing = 'External';
     $flight = 'Active';
 
     if($ring == 'RETAIL') {
-        $fltBranch = '';
         $fltContent = $flight;
         $fltRing = 'Retail';
         $flightEnabled = 0;
