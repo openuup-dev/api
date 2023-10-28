@@ -77,7 +77,7 @@ function uupGetFiles(
     }
 
     if($usePack) {
-        $genPack = uupGetGenPacks($build, $info['arch'], $updateId);
+        $genPack = uupApiGetPacks($updateId);
         if(empty($genPack)) return array('error' => 'UNSUPPORTED_COMBINATION');
 
         if(!isset($genPack[$usePack])) {
