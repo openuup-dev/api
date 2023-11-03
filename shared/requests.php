@@ -311,11 +311,11 @@ function composeFileGetRequest($updateId, $info, $rev = 1, $type = 'Production')
     //$branch = branchFromBuild($info['checkBuild']);
 
     $deviceAttributes = composeDeviceAttributes(
-        $info['flight'],
-        $info['ring'],
-        $info['checkBuild'],
-        $info['arch'],
-        $info['sku'],
+        isset($info['flight']) ? $info['flight'] : 'Active',
+        isset($info['ring']) ? $info['ring'] : 'RETAIL',
+        isset($info['checkBuild']) ? $info['checkBuild'] : '10.0.19041.1',
+        isset($info['arch']) ? $info['arch'] : 'amd64',
+        isset($info['sku']) ? $info['sku'] : 48,
         $type
     );
 
