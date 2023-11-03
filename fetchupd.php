@@ -21,6 +21,33 @@ require_once dirname(__FILE__).'/shared/cache.php';
 require_once dirname(__FILE__).'/shared/fileinfo.php';
 require_once dirname(__FILE__).'/listid.php';
 
+function uupApiPrivateParseFlags($str) {
+    $split = explode('+', $str);
+    $flags = [];
+
+    if(isset($split[1]))
+        $flags = explode(',', strtolower($split[1]));
+
+    return [$split[0], $flags];
+}
+
+function uupApiPrivateGetLatestBuild() {
+    $builds = array('22000.1');
+
+    $ids = uupListIds();
+    if(isset($ids['error'])) {
+        $ids['builds'] = array();
+    }
+
+    if(empty($ids['builds'])) {
+        $build = $builds[0];
+    } else {
+        $build = $ids['builds'][0]['build'];
+    }
+
+    return $build;
+}
+
 function uupFetchUpd(
     $arch = 'amd64',
     $ring = 'WIF',
@@ -38,20 +65,11 @@ function uupFetchUpd(
     $flight = ucwords(strtolower($flight));
     $flight = 'Active';
 
+    $buildWithFlags = $build;
+    [$build, $flags] = uupApiPrivateParseFlags($build);
+
     if($build == 'latest' || (!$build)) {
-        $builds = array('22000.1');
-
-        $ids = uupListIds();
-        if(isset($ids['error'])) {
-            $ids['builds'] = array();
-        }
-
-        if(empty($ids['builds'])) {
-            $build = $builds[0];
-        } else {
-            $build = $ids['builds'][0]['build'];
-        }
-        unset($builds, $ids);
+        $build = uupApiPrivateGetLatestBuild();
     }
 
     $build = explode('.', $build);
@@ -96,13 +114,13 @@ function uupFetchUpd(
         $type = 'Production';
     }
 
-    $res = "api-fetch-$arch-$ring-$flight-$build-$minor-$sku-$type";
+    $res = "api-fetch-$arch-$ring-$flight-$buildWithFlags-$minor-$sku-$type";
     $cache = new UupDumpCache($res);
     $fromCache = $cache->get();
     if($fromCache !== false) return $fromCache;
 
     consoleLogger('Fetching information from the server...');
-    $composerArgs = [$arch, $flight, $ring, $build, $sku, $type];
+    $composerArgs = [$arch, $flight, $ring, $build, $sku, $type, $flags];
     $out = sendWuPostRequestHelper('client', 'composeFetchUpdRequest', $composerArgs);
     if($out['error'] != 200) {
         consoleLogger('The request has failed');
@@ -130,7 +148,7 @@ function uupFetchUpd(
         $num++;
         consoleLogger("Checking build information for update {$num} of {$updatesNum}...");
 
-        $info = parseFetchUpdate($val, $out, $arch, $ring, $flight, $build, $sku, $type);
+        $info = parseFetchUpdate($val, $out, $arch, $ring, $flight, $build, $sku, $type, $flags);
         if(isset($info['error'])) {
             $errorCount++;
             continue;
@@ -160,7 +178,7 @@ function uupFetchUpd(
     return $data;
 }
 
-function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku, $type) {
+function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku, $type, $flags) {
     $updateNumId = preg_replace('/<UpdateInfo><ID>|<\/ID>.*/i', '', $updateInfo);
 
     $updates = preg_replace('/<Update>/', "\n<Update>", $out);
@@ -349,6 +367,10 @@ function parseFetchUpdate($updateInfo, $out, $arch, $ring, $flight, $build, $sku
 
         if($foundType == 'hololens' || $foundType == 'wcosdevice0') {
             $temp['releasetype'] = $type;
+        }
+
+        if(!empty($flags)) {
+            $temp['flags'] = $flags;
         }
 
         $temp['created'] = time();
