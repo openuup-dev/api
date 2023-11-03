@@ -18,10 +18,10 @@ Parameters:
    - **Supported Flight values:** `Active`, `Skip`, `Current`
    - **NOTE:** `Skip` is for `WIF` ring only. `Current` is for `RP` ring only.
 
- - `build` - Build number to use when fetching information
-   - **Supported values:** >= 9841 and <= PHP_INT_MAX-1
+ - `build` - Build number to use when fetching information. Can also be used to provide optional fetch flags in `major.minor+flag1,flag2` format.
+   - **Supported values:** Any correctly formatted build (`major` or `major.minor`) from range of 9841 and `PHP_INT_MAX-1`.
 
- - `minor` - Build minor to use when fetching information
+ - `minor` - Build minor to use when fetching information. Unused when build is formatted in `major.minor` format
    - **Supported values:** >= 0 and <= PHP_INT_MAX-1
 
  - `sku` - SKU number to use when fetching information
@@ -80,6 +80,8 @@ Outputs list of languages supported for specified Update ID.
 Parameters:
  - `updateId` - Update identifier (optional)
    - **Supported values:** any update UUID
+ - `returnInfo` - Should the full update inforation be returned with a list of languages
+   - **Supported values:** `true` or `false`
 
 
 #### updateinfo.php: `uupUpdateInfo($updateId, $onlyInfo, $ignoreFiles);`
