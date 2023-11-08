@@ -102,6 +102,9 @@ function sendWuPostRequestHelper(
     ];
 
     $postData = call_user_func_array($postComposer, $postComposerArgs);
+    if($postData === false)
+        return false;
+
     $data = sendWuPostRequestInternal($endpoints[$endpoint], $postData, $saveCookie);
 
     if($data['error'] == 500 && preg_match('/<ErrorCode>(ConfigChanged|CookieExpired|InvalidCookie)<\/ErrorCode>/', $data['out'])) {

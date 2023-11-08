@@ -362,8 +362,11 @@ XML;
 
 // Composes POST data for fetching the latest update information from Windows Update
 function composeFetchUpdRequest($arch, $flight, $ring, $build, $sku = 48, $type = 'Production', $flags = []) {
-    $device = uupDevice();
     $encData = uupEncryptedData();
+    if($encData === false)
+        return false;
+
+    $device = uupDevice();
     $uuid = genUUID();
 
     $createdTime = time();
