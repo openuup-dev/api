@@ -25,10 +25,12 @@ function uupApiPrivateParseFlags($str) {
     $split = explode('+', $str);
     $flags = [];
 
-    if(isset($split[1]))
-        $flags = explode(',', strtolower($split[1]));
+    if(isset($split[1])) {
+        $flags = array_unique(explode(',', strtolower($split[1])));
+        $flagsSafe = array_intersect(getAllowedFlags(), $flags);
+    }
 
-    return [$split[0], $flags];
+    return [$split[0], $flagsSafe];
 }
 
 function uupApiPrivateGetLatestBuild() {

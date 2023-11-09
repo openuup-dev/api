@@ -190,3 +190,12 @@ function uupApiConfigIsTrue($config) {
 
     return $data[$config] == true;
 }
+
+function getAllowedFlags() {
+    $flags = ['thisonly'];
+
+    if(uupApiConfigIsTrue('allow_corpnet'))
+        $flags[] = 'corpnet';
+
+    return $flags;
+}
