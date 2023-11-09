@@ -23,7 +23,7 @@ require_once dirname(__FILE__).'/listid.php';
 
 function uupApiPrivateParseFlags($str) {
     $split = explode('+', $str);
-    $flags = [];
+    $flagsSafe = [];
 
     if(isset($split[1])) {
         $flags = array_unique(explode(',', strtolower($split[1])));
@@ -67,8 +67,8 @@ function uupFetchUpd(
     $flight = ucwords(strtolower($flight));
     $flight = 'Active';
 
-    $buildWithFlags = $build;
     [$build, $flags] = uupApiPrivateParseFlags($build);
+    $flagsStr = implode(',', $flags);
 
     if($build == 'latest' || (!$build)) {
         $build = uupApiPrivateGetLatestBuild();
@@ -116,7 +116,7 @@ function uupFetchUpd(
         $type = 'Production';
     }
 
-    $res = "api-fetch-$arch-$ring-$flight-$buildWithFlags-$minor-$sku-$type";
+    $res = "api-fetch-$arch-$ring-$flight-$build-$flagsStr-$minor-$sku-$type";
     $cache = new UupDumpCache($res);
     $fromCache = $cache->get();
     if($fromCache !== false) return $fromCache;
