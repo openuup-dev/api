@@ -70,7 +70,7 @@ function uupFetchUpd(
     [$build, $flags] = uupApiPrivateParseFlags($build);
     $flagsStr = implode(',', $flags);
 
-    if($build == 'latest' || (!$build)) {
+    if(strtolower($build) == 'latest' || (!$build)) {
         $build = uupApiPrivateGetLatestBuild();
     }
 
