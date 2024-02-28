@@ -16,8 +16,10 @@ limitations under the License.
 */
 
 // Composes DeviceAttributes parameter needed to fetch data
-function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type, $flags) {
-    $branch = branchFromBuild($build);
+function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type, $flags, $branch) {
+    if($branch == 'auto')
+        $branch = branchFromBuild($build);
+
     $blockUpgrades = 0;
     $flightEnabled = 1;
     $isRetail = 0;
@@ -164,6 +166,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type, $fl
         'IsDeviceRetailDemo=0',
         'IsFlightingEnabled='.$flightEnabled,
         'IsRetailOS='.$isRetail,
+        'LCUVer=0.0.0.0',
         'MediaBranch=',
         'MediaVersion='.$build,
         'CloudPBR=1',
@@ -212,6 +215,7 @@ function composeDeviceAttributes($flight, $ring, $build, $arch, $sku, $type, $fl
         'UpgradeAccepted=1',
         'UpgradeEligible=1',
         'UserInPlaceUpgrade=1',
+        'VBSState=2',
         'Version_RS5=2000000000',
         'WuClientVer='.$build,
     );
@@ -308,8 +312,6 @@ function composeFileGetRequest($updateId, $info, $rev = 1, $type = 'Production')
     $created = gmdate(DATE_W3C, $createdTime);
     $expires = gmdate(DATE_W3C, $expiresTime);
 
-    //$branch = branchFromBuild($info['checkBuild']);
-
     $deviceAttributes = composeDeviceAttributes(
         isset($info['flight']) ? $info['flight'] : 'Active',
         isset($info['ring']) ? $info['ring'] : 'RETAIL',
@@ -318,6 +320,7 @@ function composeFileGetRequest($updateId, $info, $rev = 1, $type = 'Production')
         isset($info['sku']) ? $info['sku'] : 48,
         $type,
         isset($info['flags']) ? $info['flags'] : [],
+        isset($info['branch']) ? $info['branch'] : 'auto',
     );
 
     return <<<XML
@@ -361,7 +364,7 @@ XML;
 }
 
 // Composes POST data for fetching the latest update information from Windows Update
-function composeFetchUpdRequest($arch, $flight, $ring, $build, $sku = 48, $type = 'Production', $flags = []) {
+function composeFetchUpdRequest($arch, $flight, $ring, $build, $sku = 48, $type = 'Production', $flags = [], $branch = 'auto') {
     $encData = uupEncryptedData();
     if($encData === false)
         return false;
@@ -377,7 +380,8 @@ function composeFetchUpdRequest($arch, $flight, $ring, $build, $sku = 48, $type 
     $expires = gmdate(DATE_W3C, $expiresTime);
     $cookieExpires = gmdate(DATE_W3C, $cookieExpiresTime);
 
-    $branch = branchFromBuild($build);
+    if($branch == 'auto')
+        $branch = branchFromBuild($build);
 
     $mainProduct = 'Client.OS.rs2';
     if(uupApiIsServer($sku)) {
@@ -453,7 +457,8 @@ function composeFetchUpdRequest($arch, $flight, $ring, $build, $sku = 48, $type 
         $arch,
         $sku,
         $type,
-        $flags
+        $flags,
+        $branch
     );
 
     $syncCurrent = in_array('thisonly', $flags) ? 'true' : 'false';
