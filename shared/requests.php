@@ -403,6 +403,10 @@ function composeFetchUpdRequest($arch, $flight, $ring, $build, $sku = 48, $type 
     if($sku == 189) {
         $mainProduct = 'WCOSDevice0.OS';
     }
+    // WNC
+    if($sku == 210) {
+        $mainProduct = 'WNC.OS';
+    }
 
     if($arch == 'all') {
         $arch = array(
