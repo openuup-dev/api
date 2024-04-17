@@ -293,6 +293,10 @@ function branchFromBuild($build) {
             $branch = 'zn_release';
             break;
 
+        case 26100:
+            $branch = 'ge_release';
+            break;
+
         default:
             $branch = 'rs_prerelease';
             break;
