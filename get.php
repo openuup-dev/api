@@ -372,6 +372,7 @@ function uupGetFiles(
         'build' => $updateBuild,
         'sku' => $updateSku,
         'hasUpdates' => $hasUpdates,
+        'appxPresent' => uupAreAppxPresent($genPack),
         'files' => $files,
     ];
 
