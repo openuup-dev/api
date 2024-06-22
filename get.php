@@ -76,6 +76,8 @@ function uupGetFiles(
         $info['sku'] = 48;
     }
 
+    $genPack = [];
+
     if($usePack) {
         $genPack = uupApiGetPacks($updateId);
         if(empty($genPack)) return array('error' => 'UNSUPPORTED_COMBINATION');
