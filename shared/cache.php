@@ -35,6 +35,10 @@ class UupDumpCache {
     }
 
     public function get() {
+        if(!uupApiConfigIsTrue('production_mode')) {
+            return false;
+        }
+
         $cacheFile = $this->cacheFile;
 
         if(!file_exists($cacheFile)) {
@@ -58,6 +62,10 @@ class UupDumpCache {
     }
 
     public function put($content, $validity) {
+        if(!uupApiConfigIsTrue('production_mode')) {
+            return false;
+        }
+
         $cacheFile = $this->cacheFile;
         $expires = $validity ? time() + $validity : false;
 

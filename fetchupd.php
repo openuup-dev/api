@@ -50,8 +50,12 @@ function uupApiPrivateGetLatestBuild() {
     return $build;
 }
 
-function uupApiPrivateGetAcceptableBranches() {
-    return [
+function uupApiPrivateIsAcceptableBranch($branch) {
+    if(!uupApiConfigIsTrue('production_mode')) {
+        return true;
+    }
+
+    $branches = [
         'auto',
         'rs2_release',
         'rs3_release',
@@ -68,6 +72,8 @@ function uupApiPrivateGetAcceptableBranches() {
         'ge_release',
         'rs_prerelease',
     ];
+
+    return in_array($branch, $branches);
 }
 
 function uupApiPrivateNormalizeFetchParams($params) {
@@ -173,7 +179,7 @@ function uupFetchUpd2($params, $cacheRequests = 0) {
         return array('error' => 'ILLEGAL_MINOR');
     }
 
-    if(!in_array($branch, uupApiPrivateGetAcceptableBranches()))
+    if(!uupApiPrivateIsAcceptableBranch($branch))
         $branch = 'auto';
 
     if($ring == 'DEV') $ring = 'WIF';
