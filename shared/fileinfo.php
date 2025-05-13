@@ -1,5 +1,6 @@
 <?php
 /*
+Copyright 2025 OpenUUP API authors
 Copyright 2022 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
