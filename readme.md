@@ -11,7 +11,7 @@ Parameters:
 
  - `ring` - Channel to use when fetching information (Previously called Ring)
    - **Supported values:** `Canary`, `Dev`, `Beta`, `ReleasePreview`, `Retail`
-   - **Supported Ring values :** `WIF`, `WIS`, `RP`
+   - **Supported Ring values :** `WIF`, `WIS`, `RP`, `RETAIL`
 
  - `flight` - Content type to use when fetching information (Previously called Flight)
    - **Supported values:** `Mainline`
