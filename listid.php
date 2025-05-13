@@ -33,7 +33,7 @@ function uupApiPrivateGetFromFileinfo($sortByDate = 0) {
     $fileinfoRoot = $dirs['fileinfo'];
 
     $files = scandir($fileinfo);
-    $files = preg_grep('/\.json$/', $files);
+    $files = preg_grep('/\.json.gz$/', $files);
 
     consoleLogger('Parsing database info...');
 
@@ -62,7 +62,7 @@ function uupApiPrivateGetFromFileinfo($sortByDate = 0) {
         if($file == '.' || $file == '..')
             continue;
 
-        $uuid = preg_replace('/\.json$/', '', $file);
+        $uuid = preg_replace('/\.json.gz$/', '', $file);
 
         if(!isset($database[$uuid])) {
             $info = uupApiReadFileinfoMeta($uuid);

@@ -31,7 +31,7 @@ function uupApiGetFileinfoDirs() {
 }
 
 function uupApiGetFileinfoName($updateId, $meta = false) {
-    $fileName = $updateId.'.json';
+    $fileName = $updateId.'.json.gz';
     $dirs = uupApiGetFileinfoDirs();
 
     $fileinfoMeta = $dirs['fileinfoMeta'].'/'.$fileName;
@@ -49,13 +49,13 @@ function uupApiWriteFileinfoMeta($updateId, $info) {
         unset($info['files']);
 
     $file = uupApiGetFileinfoName($updateId, true);
-    return uupApiWriteJson($file, $info);
+    return file_put_contents($file, gzencode(json_encode($info)."\n"));
 }
 
 function uupApiWriteFileinfo($updateId, $info) {
     $file = uupApiGetFileinfoName($updateId);
 
-    if(uupApiWriteJson($file, $info) === false)
+    if(file_put_contents($file, gzencode(json_encode($info)."\n")) === false)
         return false;
 
     return uupApiWriteFileinfoMeta($updateId, $info);
@@ -65,7 +65,7 @@ function uupApiReadFileinfoMeta($updateId) {
     $file = uupApiGetFileinfoName($updateId, true);
 
     if(file_exists($file))
-        return uupApiReadJson($file);
+        return json_decode(gzdecode(file_get_contents($file)), true);
 
     $info = uupApiReadFileinfo($updateId, false);
     if($info === false)
@@ -88,7 +88,7 @@ function uupApiReadFileinfo($updateId, $meta = false) {
         return uupApiReadFileinfoMeta($updateId);
 
     $file = uupApiGetFileinfoName($updateId);
-    $info = uupApiReadJson($file);
+    $info = json_decode(gzdecode(file_get_contents($file)), true);
 
     return $info;
 }
