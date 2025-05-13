@@ -1,4 +1,4 @@
-UUP dump API
+OpenUUP API
 ------------
 
 ### Functions
