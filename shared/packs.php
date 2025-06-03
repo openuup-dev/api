@@ -1,5 +1,6 @@
 <?php
 /*
+Copyright 2025 OpenUUP API authors
 Copyright 2022 UUP dump API authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +17,7 @@ limitations under the License.
 */
 
 require_once dirname(__FILE__).'/../listid.php';
+require_once dirname(__FILE__).'/utils.php';
 
 function uupGetInfoTexts() {
     $fancyLangNames = array(
@@ -205,6 +207,7 @@ function uupGetInfoTexts() {
 
 function uupApiGetPacks($updateId) {
     if(empty($updateId)) return [];
+    if(!uupApiCheckUpdateId($updateId)) return []; 
     if(!file_exists('packs/'.$updateId.'.json.gz')) return [];
 
     $genPack = @gzdecode(@file_get_contents('packs/'.$updateId.'.json.gz'));
